@@ -21,13 +21,9 @@ def fetch_dots_dataframe(reporter, partner, indicator, start_period, end_period,
     """
     
     # Build the URL
-    base_url = "https://comtradeapi.un.org/data/v1/get/"
-    # "https://open.data.dataexplorer.ukdataservice.ac.uk/rest/data/IMF.STA,IMTS,1.0.0/"
-    typeCode = "C" # "C" for goods, "S" for service
-    classificationCode = "HS" # Harmonized classification
-    query = f"{typeCode}/{freq}{classificationCode}"
-    url = f"{base_url}{query}"
-    # code = f"{reporter}.{indicator}.{partner}.{freq}"
+    base_url = "https://open.data.dataexplorer.ukdataservice.ac.uk/rest/data/IMF.STA,IMTS,1.0.0/"
+    code = f"{reporter}.{indicator}.{partner}.{freq}"
+    url = f"{base_url}{code}"
     
     params = {
         "startPeriod": start_period,
