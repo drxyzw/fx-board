@@ -27,5 +27,5 @@ startYear = 2010
 # startYear = 2000
 data_msg = IMF_DATA.data(res_NEER, key=key_NEER, params={"startPeriod": startYear})
 
-cpi_df = sdmx.to_pandas(data_msg)
-print(cpi_df.head(13))
+df = sdmx.to_pandas(data_msg)
+print(df.head(13))

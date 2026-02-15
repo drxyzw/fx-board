@@ -17,7 +17,8 @@ load_dotenv()
 # https://comtradeapi.un.org/files/v1/app/wiki/ComtradePlus_DataItems.xlsx
 
 
-precomputedNeerObj = PrecomputeNeerBis()
+# precomputedNeerObj = PrecomputeNeerBis()
+precomputedNeerObj = PrecomputeNeerImf()
 precomputedNeerDf = precomputedNeerObj.getNeerSeries(ccies)
 print("finished loading precomputed NEERs")
 
