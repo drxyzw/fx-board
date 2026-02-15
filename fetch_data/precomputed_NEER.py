@@ -9,20 +9,21 @@ from utils.config import *
 
 class PrecomputedNeer:
     storeFilename = ""
-    def __init__(self, freq):
-        pass
+    freq = ""
+    def __init__(self):
+        load_dotenv()
+        self.freq = os.getenv("NEER_FREQ")
     
-    def onlyPrecomputed(self, target_period):
+    def onlyPrecomputed(self):
         pass
 
     def getNeerSeries(self, ccies):
         return None
 
 class PrecomputeNeerBis(PrecomputedNeer):
-    def __init__(self, freq="M"):
-        load_dotenv()
+    def __init__(self):
+        super().__init__()
         self.storeFilename = os.getenv("PRECOMPUTED_NEER_STORE_DIR") + "/FRED_BIS_NEER.xlsx"
-        self.freq = freq
         return
     
     def onlyPrecomputed(self):
@@ -52,10 +53,9 @@ class PrecomputeNeerBis(PrecomputedNeer):
         return NEER_df
     
 class PrecomputeNeerImf(PrecomputedNeer):
-    def __init__(self, freq="M"):
-        load_dotenv()
+    def __init__(self):
+        super().__init__()
         self.startYear = 2000
-        self.freq = freq
         self.storeFilename = os.getenv("PRECOMPUTED_NEER_STORE_DIR") + "/IMF_NEER.xlsx"
         return
     

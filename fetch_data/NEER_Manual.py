@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 import pandas as pd
 from time import sleep
 
-def fetch_dots_dataframe(reporter, partner, indicator, start_period, end_period, freq="M", sleep_sec=1):
+def fetchDotsDataframe(reporter, partner, indicator, start_period, end_period, freq="M", sleep_sec=1):
     """
     Fetch DOTS data from UK Data Service REST API and return as pandas DataFrame.
     
@@ -88,7 +88,7 @@ def fetch_dots_dataframe(reporter, partner, indicator, start_period, end_period,
 def computeManualNEER(ccy, coutry_key, trade_data):
     return None
 
-def get_weight(ccies):
+def getTradeData(ccies):
     # indicators = ["TXG_FOB_USD", "TMG_CIF_USD"]
     indicators = ["XG_FOB_USD", "MG_CIF_USD"]
     # startYYYYMM = "1997-01"
@@ -102,30 +102,11 @@ def get_weight(ccies):
         countries.append(country)
 
     dfs = []
-#     selected_reporters = [
-# "PER",
-# "PHL",
-# "POL",
-# "ROU",
-# "RUS",
-# "SAU",
-# "SGP",
-# "ZAF",
-# "SWE",
-# "CHE",
-# "THA",
-# "TUR",
-# "ARE",
-# "GBR",
-# "USA",
-# "VEN",
-# "VNM",
-# ]
     for reporter in countries:
         for partner in countries:
             if partner != reporter: # and (reporter in selected_reporters):
                 for indicator in indicators:
-                    df = fetch_dots_dataframe(
+                    df = fetchDotsDataframe(
                         reporter=reporter,
                         partner=partner,
                         indicator=indicator,

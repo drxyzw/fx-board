@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 import os
 import pandas as pd
 from utils.config import *
-from fetch_data.NEER_Manual import computeManualNEER, get_weight
+from fetch_data.NEER_Manual import computeManualNEER, getTradeData
 from fetch_data.precomputed_NEER import *
 
 load_dotenv()
@@ -17,8 +17,8 @@ load_dotenv()
 # https://comtradeapi.un.org/files/v1/app/wiki/ComtradePlus_DataItems.xlsx
 
 
-# precomputedNeerObj = PrecomputeNeerBis()
-precomputedNeerObj = PrecomputeNeerImf()
+precomputedNeerObj = PrecomputeNeerBis()
+# precomputedNeerObj = PrecomputeNeerImf()
 precomputedNeerDf = precomputedNeerObj.getNeerSeries(ccies)
 print("finished loading precomputed NEERs")
 
