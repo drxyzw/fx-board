@@ -4,6 +4,7 @@ import pandas as pd
 from utils.config import *
 from fetch_data.NEER_Manual import computeManualNEER, getTradeData
 from fetch_data.precomputed_NEER import *
+from fetch_data.tradeData import *
 
 load_dotenv()
 
@@ -17,10 +18,15 @@ load_dotenv()
 # https://comtradeapi.un.org/files/v1/app/wiki/ComtradePlus_DataItems.xlsx
 
 
-precomputedNeerObj = PrecomputeNeerBis()
-# precomputedNeerObj = PrecomputeNeerImf()
-precomputedNeerDf = precomputedNeerObj.getNeerSeries(ccies)
+# precomputedNeerObj = PrecomputeNeerBis()
+precomputedNeerObj = PrecomputeNeerImf()
+# precomputedNeerDf = precomputedNeerObj.getNeerSeries(ccies)
 print("finished loading precomputed NEERs")
+
+onlyPrecomputed = precomputedNeerObj.onlyPrecomputed()
+if not onlyPrecomputed:
+    tradeData = ImfDotsTradeData()
+    tradeData.getTradeData(ccies)
 
 # onlyPrecomputed = all([not(value["FRED"] is None) for value in ccies.values() ])  
 # df_dots_weight = None
