@@ -20,13 +20,13 @@ load_dotenv()
 
 # precomputedNeerObj = PrecomputeNeerBis()
 precomputedNeerObj = PrecomputeNeerImf()
-# precomputedNeerDf = precomputedNeerObj.getNeerSeries(ccies)
+precomputedNeerDf = precomputedNeerObj.getNeerSeries(ccies, loadFileIfExists=True)
 print("finished loading precomputed NEERs")
 
 onlyPrecomputed = precomputedNeerObj.onlyPrecomputed()
 if not onlyPrecomputed:
     tradeData = ImfDotsTradeData()
-    tradeData.getTradeData(ccies)
+    tradeData.getTradeData(ccies, loadFileIfExists=False)
 
 # onlyPrecomputed = all([not(value["FRED"] is None) for value in ccies.values() ])  
 # df_dots_weight = None

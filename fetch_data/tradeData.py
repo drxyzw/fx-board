@@ -13,14 +13,14 @@ class TradeData:
         load_dotenv()
         self.freq = os.getenv("TRADE_FREQ")
 
-    def getTradeData(self, ccies):
+    def getTradeData(self, ccies, loadFileIfExists):
         pass
 
 # -----------------------------------------------------------------------------------
 class ImfDotsTradeData(TradeData):
     def __init__(self, freq="M"):
         super().__init__()
-        self.storeFilename = os.getenv("TRADE_DATA_STORE_DIR") + "/imf_dots_trade_data.xlsx"
+        self.storeFilename = os.getenv("TRADE_DATA_STORE_DIR") + "/imf_dots_trade_data.csv"
 
 
     def fetchDotsDataframe(self, reporters, partners, indicators, start_period, end_period, freq="M", sleep_sec=1):
@@ -120,32 +120,46 @@ class ImfDotsTradeData(TradeData):
 
         return df
 
-    def getTradeData(self, ccies):
-        indicators = ["XG_FOB_USD", "MG_CIF_USD"]
-        startYYYYMM = "1996-01"
-        endYYYYMM = "2025-06"
+    def getTradeData(self, ccies, loadFileIfExists):
+        if loadFileIfExists and os.path.exists(self.storeFilename):
+            df_all = pd.read_csv(self.storeFilename, index_col = "Date")
+        else:
+            indicators = ["XG_FOB_USD", "MG_CIF_USD"]
+            startYYYYMM = "1996-01"
+            endYYYYMM = "2025-12"
 
-        countries = []
-        for value in ccies.values():
-            country = value["DOTS"]
-            countries.append(country)
+            countries = []
+            for value in ccies.values():
+                country = value["DOTS"]
+                countries.append(country)
 
-        dfs = []
-        for reporter in countries:
-            for partner in countries:
-                if partner != reporter: # and (reporter in selected_reporters):
-                    df = self.fetchDotsDataframe(
-                        reporters=reporter,
-                        partners=partner,
-                        indicators=indicators,
-                        start_period=startYYYYMM,
-                        end_period=endYYYYMM
-                    )
-                    if df is not None:
-                        print(f"reporter: {reporter}, partner: {partner}, indicator: {indicators}, start_period: {startYYYYMM}, endYYYYMM: {endYYYYMM}")
-                        dfs.append(df)
-        df_all = pd.concat(dfs)
-        df_all.to_csv(self.storeFilenameee, index=False)
+            dfs = []
+            for reporter in countries:
+                # for partner in countries:
+                #     if partner != reporter: # and (reporter in selected_reporters):
+                #         df = self.fetchDotsDataframe(
+                #             reporters=reporter,
+                #             partners=partner,
+                #             indicators=indicators,
+                #             start_period=startYYYYMM,
+                #             end_period=endYYYYMM
+                #         )
+                #         if df is not None:
+                #             print(f"reporter: {reporter}, partner: {partner}, indicator: {indicators}, start_period: {startYYYYMM}, endYYYYMM: {endYYYYMM}")
+                #             dfs.append(df)
+                df = self.fetchDotsDataframe(
+                    reporters=reporter,
+                    partners=countries,
+                    indicators=indicators,
+                    start_period=startYYYYMM,
+                    end_period=endYYYYMM
+                )
+                if df is not None:
+                    print(f"reporter: {reporter}, partners: [countires] indicators: {indicators}, start_period: {startYYYYMM}, endYYYYMM: {endYYYYMM}")
+                    dfs.append(df)
+
+            df_all = pd.concat(dfs)
+            df_all.to_csv(self.storeFilename, index=False)
         return df_all
 
 # -----------------------------------------------------------------------------------
