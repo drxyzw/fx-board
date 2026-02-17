@@ -18,7 +18,7 @@ load_dotenv()
 # country list of UN Comtrade
 # https://comtradeapi.un.org/files/v1/app/wiki/ComtradePlus_DataItems.xlsx
 
-
+# Precomputed NEER
 # precomputedNeerObj = PrecomputeNeerBis()
 precomputedNeerObj = PrecomputeNeerImf()
 precomputedNeerDf = precomputedNeerObj.getNeerSeries(ccies, loadFileIfExists=True)
@@ -26,10 +26,12 @@ print("finished loading precomputed NEERs")
 
 onlyPrecomputed = precomputedNeerObj.onlyPrecomputed()
 if not onlyPrecomputed:
+    # Trade data
     tradeData = ImfDotsTradeData()
     tradeDataDf = tradeData.getTradeData(ccies, loadFileIfExists=True)
     print("finished loading trade data")
 
+    # Bilateral FX
     fxRateData = BisFXRateData()
     fxRateDataDf = fxRateData.getFxSeries(ccies, loadFileIfExists=True)
 
