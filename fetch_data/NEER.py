@@ -2,9 +2,10 @@ from dotenv import load_dotenv
 import os
 import pandas as pd
 from utils.config import *
-from fetch_data.NEER_Manual import computeManualNEER, getTradeData
-from fetch_data.precomputed_NEER import *
-from fetch_data.tradeData import *
+from fetch_data.archive.NEER_Manual import computeManualNEER, getTradeData
+from fetch_data.PrecomputedNeer import *
+from fetch_data.TradeData import *
+from fetch_data.FXRateData import *
 
 load_dotenv()
 
@@ -26,8 +27,13 @@ print("finished loading precomputed NEERs")
 onlyPrecomputed = precomputedNeerObj.onlyPrecomputed()
 if not onlyPrecomputed:
     tradeData = ImfDotsTradeData()
-    tradeData.getTradeData(ccies, loadFileIfExists=False)
+    tradeDataDf = tradeData.getTradeData(ccies, loadFileIfExists=True)
+    print("finished loading trade data")
 
+    fxRateData = BisFXRateData()
+    fxRateDataDf = fxRateData.getFxSeries(ccies, loadFileIfExists=False)
+
+    
 # onlyPrecomputed = all([not(value["FRED"] is None) for value in ccies.values() ])  
 # df_dots_weight = None
 # if not onlyPrecomputed:
@@ -49,7 +55,7 @@ if not onlyPrecomputed:
 #         if fred_key is not None:
 #             NEER_country = fred.get_series("NB" + fred_key + "BIS").to_frame()
 #         else:
-#             dots_key = value["DOTS"]
+#             dots_key = value["IMF_DOTS"]
 #             NEER_country = computeManualNEER(ccy, dots_key, df_dots_trade_data)
 #         print(f'fetched currency {ccy} from web')
 #         NEER_country.columns = [ccy]

@@ -5,6 +5,8 @@ import xml.etree.ElementTree as ET
 import pandas as pd
 from time import sleep
 
+from utils.config import *
+
 # -----------------------------------------------------------------------------------
 class TradeData:
     storeFilename = ""
@@ -71,12 +73,9 @@ class ImfDotsTradeData(TradeData):
 
         # Parse XML
         root = ET.fromstring(response.content)
-        ns = {
-            'mes': 'http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message',
-            'gen': 'http://www.sdmx.org/resources/sdmxml/schemas/v2_1/data/generic'
-        }
 
         # Extract observations
+        # pandsmdx is not useful because it is not compatible with python 3.13
         data_list = []
         for obs in root.findall(".//gen:Obs", ns):
             obs_key = obs.find("gen:ObsKey", ns)
@@ -130,7 +129,7 @@ class ImfDotsTradeData(TradeData):
 
             countries = []
             for value in ccies.values():
-                country = value["DOTS"]
+                country = value["IMF_DOTS"]
                 countries.append(country)
 
             dfs = []

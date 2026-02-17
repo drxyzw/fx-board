@@ -167,7 +167,7 @@
 #     flow_keys = flows.keys()
 #     with open("./DOTS_PARAMETER.txt", "w", encoding="utf-8") as file:
 #         for k in flow_keys:
-#             if "DOTS" in k:
+#             if "IMF_DOTS" in k:
 #                 file.write(k)
 #                 file.write("\n")
 # # dsd = IMF.datastructure("DOTS")
