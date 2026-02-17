@@ -6,6 +6,7 @@ import pandas as pd
 from time import sleep
 
 from utils.config import *
+from utils.utils import *
 
 # -----------------------------------------------------------------------------------
 class TradeData:
@@ -20,12 +21,16 @@ class TradeData:
 
 # -----------------------------------------------------------------------------------
 class ImfDotsTradeData(TradeData):
-    def __init__(self, freq="M"):
+    startYYYYMM = ""
+    endYYYYMM = ""
+
+    def __init__(self):
         super().__init__()
-        self.storeFilename = os.getenv("TRADE_DATA_STORE_DIR") + "/imf_dots_trade_data.csv"
+        freq_label = freqToString(self.freq)
+        self.storeFilename = os.getenv("TRADE_DATA_STORE_DIR") + f"/imf_dots_trade_data_{freq_label.lower()}.csv"
 
 
-    def fetchDotsDataframe(self, reporters, partners, indicators, start_period, end_period, freq="M", sleep_sec=1):
+    def fetchDotsDataframe(self, reporters, partners, indicators, start_period, end_period, sleep_sec=1):
         """
         Fetch DOTS data from UK Data Service REST API and return as pandas DataFrame.
 
@@ -51,7 +56,7 @@ class ImfDotsTradeData(TradeData):
         partners_str = partners if isinstance(partners, str) else "+".join(partners)
         indicators_str = indicators if isinstance(indicators, str) else "+".join(indicators)
         base_url = "https://open.data.dataexplorer.ukdataservice.ac.uk/rest/data/IMF.STA,IMTS,1.0.0/"
-        code = f"{reporters_str}.{indicators_str}.{partners_str}.{freq}"
+        code = f"{reporters_str}.{indicators_str}.{partners_str}.{self.freq}"
         url = f"{base_url}{code}"
 
         params = {
@@ -91,12 +96,12 @@ class ImfDotsTradeData(TradeData):
                 if set(requuired_keys) <= key_dict.keys():
                     period = key_dict["TIME_PERIOD"]
                     date_str = ""
-                    if freq.upper() == "M":
+                    if self.freq.upper() == "M":
                         year, month = period.split("-")
                         # month comes with "M01", "M02", ..., so remove "M"
                         month = month[1:]
                         date_str = str(year) + "-" + str(month) + "-01"
-                    elif freq.upper() == "A":
+                    elif self.freq.upper() == "A":
                         year, month = period, None
                         date_str = str(year) + "-01-01"
                     reporter = key_dict["COUNTRY"]
@@ -124,8 +129,8 @@ class ImfDotsTradeData(TradeData):
             df_all = pd.read_csv(self.storeFilename, index_col = "Date")
         else:
             indicators = ["XG_FOB_USD", "MG_CIF_USD"]
-            startYYYYMM = "1996-01"
-            endYYYYMM = "2025-12"
+            self.startYYYYMM = os.getenv("TRADE_DATA_START_YYYYMM")
+            self.endYYYYMM = os.getenv("TRADE_DATA_END_YYYYMM")
 
             countries = []
             for value in ccies.values():
@@ -146,15 +151,22 @@ class ImfDotsTradeData(TradeData):
                 #         if df is not None:
                 #             print(f"reporter: {reporter}, partner: {partner}, indicator: {indicators}, start_period: {startYYYYMM}, endYYYYMM: {endYYYYMM}")
                 #             dfs.append(df)
+                if self.freq == "M":
+                    start_period = self.startYYYYMM
+                    end_period = self.endYYYYMM
+                elif self.freq == "A":
+                    start_period = self.startYYYYMM[:4]
+                    end_period = self.endYYYYMM[:4]
+
                 df = self.fetchDotsDataframe(
                     reporters=reporter,
                     partners=countries,
                     indicators=indicators,
-                    start_period=startYYYYMM,
-                    end_period=endYYYYMM
+                    start_period=start_period,
+                    end_period=end_period
                 )
                 if df is not None:
-                    print(f"reporter: {reporter}, partners: [countires] indicators: {indicators}, start_period: {startYYYYMM}, endYYYYMM: {endYYYYMM}")
+                    print(f"reporter: {reporter}, partners: [countires] indicators: {indicators}, start_period: {start_period}, end_period: {end_period}")
                     dfs.append(df)
 
             df_all = pd.concat(dfs)

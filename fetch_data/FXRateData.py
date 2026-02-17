@@ -4,6 +4,7 @@ import requests
 import pandas as pd
 import xml.etree.ElementTree as ET
 from utils.config import *
+from utils.utils import *
 
 class FXRateData:
     storeFilename = ""
@@ -20,15 +21,7 @@ class BisFXRateData(FXRateData):
     endDate = ""
     def __init__(self):
         super().__init__()
-        freq_label = ""
-        if self.freq == "D":
-            freq_label = "Daily"
-        elif self.freq == "M":
-            freq_label = "Monthly"
-        elif self.freq == "A":
-            freq_label == "Annually"
-        else:
-            raise ValueError("Invalid freq:" + self.freq)
+        freq_label = freqToString(self.freq)
         self.storeFilename = os.getenv("FX_RATE_DATA_STORE_DIR") + f"/BIS_FX_RATE_DATA_{freq_label.upper()}.csv"
         self.startDate=os.getenv("FX_START_DATE")
         self.endDate=os.getenv("FX_END_DATE")
@@ -36,7 +29,7 @@ class BisFXRateData(FXRateData):
     
     def getFxSeries(self, ccies, loadFileIfExists):
         if loadFileIfExists and os.path.exists(self.storeFilename):
-            fx_df = pd.read_excel(self.storeFilename, index_col = "Date")
+            fx_df = pd.read_csv(self.storeFilename, index_col = "Date")
         else:
             fx_dfs = []
             base_url = "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_XRU/1.0/"

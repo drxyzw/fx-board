@@ -6,6 +6,7 @@ from fetch_data.archive.NEER_Manual import computeManualNEER, getTradeData
 from fetch_data.PrecomputedNeer import *
 from fetch_data.TradeData import *
 from fetch_data.FXRateData import *
+from fetch_data.NeerWeight import *
 
 load_dotenv()
 
@@ -30,6 +31,11 @@ if not onlyPrecomputed:
     tradeData = ImfDotsTradeData()
     tradeDataDf = tradeData.getTradeData(ccies, loadFileIfExists=True)
     print("finished loading trade data")
+
+    # Weight from trade data
+    neerWeight = ImfNeerWeight(tradeData=tradeDataDf)
+    neerWeight.computeWeight()
+
 
     # Bilateral FX
     fxRateData = BisFXRateData()
