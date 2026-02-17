@@ -31,7 +31,7 @@ if not onlyPrecomputed:
     print("finished loading trade data")
 
     fxRateData = BisFXRateData()
-    fxRateDataDf = fxRateData.getFxSeries(ccies, loadFileIfExists=False)
+    fxRateDataDf = fxRateData.getFxSeries(ccies, loadFileIfExists=True)
 
     
 # onlyPrecomputed = all([not(value["FRED"] is None) for value in ccies.values() ])  

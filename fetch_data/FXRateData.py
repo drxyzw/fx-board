@@ -20,7 +20,16 @@ class BisFXRateData(FXRateData):
     endDate = ""
     def __init__(self):
         super().__init__()
-        self.storeFilename = os.getenv("FX_RATE_DATA_STORE_DIR") + "/BIS_FX_RATE_DATA.csv"
+        freq_label = ""
+        if self.freq == "D":
+            freq_label = "Daily"
+        elif self.freq == "M":
+            freq_label = "Monthly"
+        elif self.freq == "A":
+            freq_label == "Annually"
+        else:
+            raise ValueError("Invalid freq:" + self.freq)
+        self.storeFilename = os.getenv("FX_RATE_DATA_STORE_DIR") + f"/BIS_FX_RATE_DATA_{freq_label.upper()}.csv"
         self.startDate=os.getenv("FX_START_DATE")
         self.endDate=os.getenv("FX_END_DATE")
         return
@@ -48,10 +57,18 @@ class BisFXRateData(FXRateData):
                         data_ccy_dict = []
                         for series in root.findall(".//ns1:Series", ns):
                             for obs in series.findall("ns1:Obs", ns):
-                                    date = obs.attrib.get("TIME_PERIOD")
+                                    date_str = obs.attrib.get("TIME_PERIOD")
                                     value = obs.attrib.get("OBS_VALUE")
                                     if value != "NaN":
-                                        data_ccy_dict.append({"Date": pd.to_datetime(date, format="%Y-%m-%d"), ccy: value})
+                                        if self.freq == "D":
+                                            date = pd.to_datetime(date_str, format="%Y-%m-%d")
+                                        elif self.freq == "M":
+                                            date = pd.to_datetime(date_str + "-01", format="%Y-%m-%d")
+                                        elif self.freq == "A":
+                                            date = pd.to_datetime(date_str + "-01-01", format="%Y-%m-%d")
+                                        else:
+                                            raise ValueError("Invalid freq: " + self.freq)
+                                        data_ccy_dict.append({"Date": date, ccy: value})
                         data_ccy = pd.DataFrame(data_ccy_dict)
                         data_ccy.set_index("Date", inplace=True)
                         fx_dfs.append(data_ccy)
