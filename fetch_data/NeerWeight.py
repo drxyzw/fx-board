@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 import pandas as pd
 import os
 from dateutil.relativedelta import relativedelta
+import numpy as np
 
 from utils.utils import *
 
@@ -9,9 +10,11 @@ class NeerWeight:
     tradeData = ""
     storeFilename = ""
     freq = ""
+    minWeightCutoff = 0.0
     def __init__(self, tradeData):
         load_dotenv()
         self.tradeData = tradeData
+        self.minWeightCutoff = float(os.getenv("WEIGHT_CUTOFF"))
     def computeWeight(self):
         pass
 
@@ -32,6 +35,9 @@ class ImfNeerWeight(NeerWeight):
         df_trade = df_trade[["Date", "reporter", "partner", "import_export"]]
         # ratio among all parter countries
         df_trade["weight"] = df_trade["import_export"] / df_trade.groupby(["Date", "reporter"])["import_export"].transform("sum")
+        # if weight < minWeightCutOff, impute it as 0, then renormalize
+        df_trade["weight"] = np.where(df_trade["weight"] < self.minWeightCutoff, 0.0, df_trade["weight"])
+        df_trade["weight"] = df_trade["weight"] / df_trade.groupby(["Date", "reporter"])["weight"].transform("sum")
         df_trade = df_trade[["Date", "reporter", "partner", "weight"]]
         df_trade = pd.pivot_table(
             df_trade,
