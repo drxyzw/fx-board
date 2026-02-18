@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import pandas as pd
 import os
+from dateutil.relativedelta import relativedelta
 
 from utils.utils import *
 
@@ -47,6 +48,7 @@ class ImfNeerWeight(NeerWeight):
                            var_name="partner",
                            value_name="weight")
         df_trade = df_trade.dropna().reset_index()
+        df_trade["Date"]=pd.to_datetime(df_trade["Date"]).apply(lambda x: x + relativedelta(years=1))
         df_trade = df_trade.set_index("Date")
         df_trade = df_trade[["reporter", "partner", "weight"]]
         df_trade.to_csv(self.storeFilename)

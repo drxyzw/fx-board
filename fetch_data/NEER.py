@@ -7,6 +7,7 @@ from fetch_data.PrecomputedNeer import *
 from fetch_data.TradeData import *
 from fetch_data.FXRateData import *
 from fetch_data.NeerWeight import *
+from fetch_data.NeerCalculator import *
 
 load_dotenv()
 
@@ -25,6 +26,8 @@ precomputedNeerObj = PrecomputeNeerImf()
 precomputedNeerDf = precomputedNeerObj.getNeerSeries(ccies, loadFileIfExists=True)
 print("finished loading precomputed NEERs")
 
+neerWeightDf = None
+fxRateDataDf = None
 onlyPrecomputed = precomputedNeerObj.onlyPrecomputed()
 if not onlyPrecomputed:
     # Trade data
@@ -34,13 +37,14 @@ if not onlyPrecomputed:
 
     # Weight from trade data
     neerWeight = ImfNeerWeight(tradeData=tradeDataDf)
-    neerWeight.computeWeight()
-
+    neerWeightDf = neerWeight.computeWeight()
 
     # Bilateral FX
     fxRateData = BisFXRateData()
     fxRateDataDf = fxRateData.getFxSeries(ccies, loadFileIfExists=True)
 
+neerCalculator = NeerCalculator(neerWeightDf=neerWeightDf, fxRateDataDf=fxRateDataDf)
+neerDf = neerCalculator.calculate()
     
 # onlyPrecomputed = all([not(value["FRED"] is None) for value in ccies.values() ])  
 # df_dots_weight = None
