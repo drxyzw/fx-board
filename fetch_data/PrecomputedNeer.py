@@ -71,6 +71,7 @@ class PrecomputeNeerImf(PrecomputedNeer):
     def getNeerSeries(self, ccies, loadFileIfExists):
         if loadFileIfExists and os.path.exists(self.storeFilename):
             NEER_df = pd.read_excel(self.storeFilename, index_col = "Date")
+            NEER_df.index = pd.to_datetime(NEER_df.index)
         else:
             IMF_DATA = sdmx.Client('IMF_DATA')
             res_NEER = "EER"

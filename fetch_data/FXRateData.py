@@ -35,6 +35,7 @@ class BisFXRateData(FXRateData):
     def getFxSeries(self, ccies, loadFileIfExists):
         if loadFileIfExists and os.path.exists(self.storeFilename):
             fx_df = pd.read_csv(self.storeFilename, index_col = "Date")
+            fx_df.index = pd.to_datetime(fx_df.index)
         else:
             fx_dfs = []
             fx_not_in_bis = []

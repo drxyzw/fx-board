@@ -33,13 +33,13 @@ ccies = {
     "AUD": {"Include": True, "IMF_NEER":  "AUS", "BIS_NEER": "AU", "IMF_DOTS": "AUS", "UNCT":  36, "BIS_FX": "AU", "BIS_FX_DOM": "AUD"},
     "BDT": {"Include": True, "IMF_NEER":   None, "BIS_NEER": None, "IMF_DOTS": "BGD", "UNCT":  50, "BIS_FX": None, "BIS_FX_DOM":  None}, # Bangladesh taka
     "BRL": {"Include": True, "IMF_NEER":  "BRA", "BIS_NEER": "BR", "IMF_DOTS": "BRA", "UNCT":  76, "BIS_FX": "BR", "BIS_FX_DOM": "BRL"},
-    "KHR": {"Include": True, "IMF_NEER":   None, "BIS_NEER": None, "IMF_DOTS": "KHN", "UNCT": 116, "BIS_FX": None, "BIS_FX_DOM":  None}, # Cambodian riel
+    "KHR": {"Include": True, "IMF_NEER":   None, "BIS_NEER": None, "IMF_DOTS": "KHM", "UNCT": 116, "BIS_FX": None, "BIS_FX_DOM":  None}, # Cambodian riel
     "CAD": {"Include": True, "IMF_NEER":  "CAN", "BIS_NEER": "CA", "IMF_DOTS": "CAN", "UNCT": 124, "BIS_FX": "CA", "BIS_FX_DOM": "CAD"},
     "CLP": {"Include": True, "IMF_NEER":  "CHL", "BIS_NEER": "CL", "IMF_DOTS": "CHL", "UNCT": 152, "BIS_FX": "CL", "BIS_FX_DOM": "CLP"}, # Chilean peso
     "CNY": {"Include": True, "IMF_NEER":  "CHN", "BIS_NEER": "CN", "IMF_DOTS": "CHN", "UNCT": 156, "BIS_FX": "CN", "BIS_FX_DOM": "CNY"},
     "TWD": {"Include": True, "IMF_NEER":   None, "BIS_NEER": "TW", "IMF_DOTS": "TWN", "UNCT": 490, "BIS_FX": "TW", "BIS_FX_DOM": "TWD"}, # https://www.cepii.fr/DATA_DOWNLOAD/baci/doc/FAQ_BACI.html#7_Is_there_data_for_Taiwan , https://groups.google.com/g/witsforum/c/gXaRZfScejg
     "COP": {"Include": True, "IMF_NEER":  "COL", "BIS_NEER": "CO", "IMF_DOTS": "COL", "UNCT": 170, "BIS_FX": "CO", "BIS_FX_DOM": "COP"}, # Colombian peso
-    "EUR": {"Include": True, "IMF_NEER": "G163", "BIS_NEER": "XM", "IMF_DOTS": "G995","UNCT":  97, "BIS_FX": "XM", "BIS_FX_DOM": "EUR"},
+    "EUR": {"Include": True, "IMF_NEER": "G163", "BIS_NEER": "XM", "IMF_DOTS":"G163", "UNCT":  97, "BIS_FX": "XM", "BIS_FX_DOM": "EUR"},
     "CZK": {"Include": True, "IMF_NEER":  "CZE", "BIS_NEER": "CZ", "IMF_DOTS": "CZE", "UNCT": 203, "BIS_FX": "CZ", "BIS_FX_DOM": "CZK"}, # Czech Koruna
     "DKK": {"Include": True, "IMF_NEER":  "DNK", "BIS_NEER": "DK", "IMF_DOTS": "DNK", "UNCT": 208, "BIS_FX": "DK", "BIS_FX_DOM": "DKK"},
     "HKD": {"Include": True, "IMF_NEER":  "HKG", "BIS_NEER": "HK", "IMF_DOTS": "HKG", "UNCT": 344, "BIS_FX": "HK", "BIS_FX_DOM": "HKD"},

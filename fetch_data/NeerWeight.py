@@ -54,7 +54,6 @@ class ImfNeerWeight(NeerWeight):
                            var_name="partner",
                            value_name="weight")
         df_trade = df_trade.dropna().reset_index()
-        df_trade["Date"]=pd.to_datetime(df_trade["Date"]).apply(lambda x: x + relativedelta(years=1))
         df_trade = df_trade.set_index("Date")
         df_trade = df_trade[["reporter", "partner", "weight"]]
         df_trade.to_csv(self.storeFilename)
