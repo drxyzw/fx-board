@@ -37,7 +37,7 @@ if not onlyPrecomputed:
 
     # Weight from trade data
     neerWeight = ImfNeerWeight(tradeData=tradeDataDf)
-    neerWeightDf = neerWeight.computeWeight()
+    neerWeightDf = neerWeight.computeWeight(loadFileIfExists=True)
 
     # Bilateral FX
     fxRateData = BisFXRateData()
@@ -46,36 +46,3 @@ if not onlyPrecomputed:
 neerCalculator = NeerCalculator(neerWeightDf=neerWeightDf, fxRateDataDf=fxRateDataDf)
 neerDf = neerCalculator.calculate()
     
-# onlyPrecomputed = all([not(value["FRED"] is None) for value in ccies.values() ])  
-# df_dots_weight = None
-# if not onlyPrecomputed:
-#     DOTS_TRADE_DATA = "./data_raw/dots_trade_data.csv"
-#     if os.path.isfile(DOTS_TRADE_DATA):
-#         df_dots_trade_data = pd.read_csv(DOTS_TRADE_DATA)
-#     else:
-#         df_dots_trade_data = get_weight(ccies)
-#         df_dots_trade_data.to_csv(DOTS_TRADE_DATA, index=False)
-
-# NEER_df = None
-
-# NEER_dfs = []
-# fred = Fred(api_key=api_key)
-# for ccy, value in ccies.items():
-#     fred_key = value["FRED"]
-#     isInclude = value["Include"]
-#     if isInclude:
-#         if fred_key is not None:
-#             NEER_country = fred.get_series("NB" + fred_key + "BIS").to_frame()
-#         else:
-#             dots_key = value["IMF_DOTS"]
-#             NEER_country = computeManualNEER(ccy, dots_key, df_dots_trade_data)
-#         print(f'fetched currency {ccy} from web')
-#         NEER_country.columns = [ccy]
-#         NEER_dfs.append(NEER_country)
-
-# NEER_df = pd.concat(NEER_dfs, axis=1)
-
-# print('fetched all currncies from web')
-
-# NEER_df.to_excel(DIR_RAW + "/FRED_NEER.xlsx", index=True)
-# print('saved in a file')
