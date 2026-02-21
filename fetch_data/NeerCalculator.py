@@ -2,6 +2,9 @@ from dotenv import load_dotenv
 import os
 import pandas as pd
 import numpy as np
+from scipy.interpolate import interp1d
+from dateutil import relativedelta as dt
+
 from utils.utils import *
 from utils.config import *
 
@@ -23,13 +26,22 @@ class NeerCalculator:
         self.neerWeightDf["reporter"] = self.neerWeightDf["reporter"].map(country2Ccy).fillna(self.neerWeightDf["reporter"])
         self.neerWeightDf["partner"] = self.neerWeightDf["partner"].map(country2Ccy).fillna(self.neerWeightDf["partner"])
         weightLag = parseTimeDelta(os.getenv("WEIGHT_LAG"))
+        # use weight up to previous year due to time lag of trade data update
         self.neerWeightDf.index=pd.to_datetime(self.neerWeightDf.index).map(lambda x: x + weightLag)
+        # replace NaN weight with 0
+        # self.neerWeightDf = self.neerWeightDf.fillna(0.0)
+        # flat extrapolation to 1Y
+        lastDate = self.neerWeightDf.index[-1]
+        dfLastDate = self.neerWeightDf.loc[lastDate].copy()
+        lastDate += dt(years=1)
+        dfLastDate.index = [lastDate] * len(dfLastDate)
+        self.neerWeightDf = pd.concat([self.neerWeightDf, dfLastDate])
 
         # further, interpolate weight
         dates = list(self.fxRateDataDf.index)
         dates_num = [date.timestamp() for date in dates]
-        neerWeightDfTimestamp = neerWeightDf.copy()
-        neerWeightDfTimestamp.index = [t.timestamp() for t in neerWeightDf.index]
+        neerWeightDfTimestamp = self.neerWeightDf.copy()
+        neerWeightDfTimestamp.index = [t.timestamp() for t in neerWeightDfTimestamp.index]
         neerWeightDfInterps = []
         for reporter in neerWeightDfTimestamp["reporter"].unique():
             for partner in neerWeightDfTimestamp["partner"].unique():
@@ -48,7 +60,10 @@ class NeerCalculator:
                     #     neerWeightDfInterps.append(neerWeightDfInterpDict)
 
                     # vectorize
-                    weights = np.interp(dates_num, ts, ws)
+                    # weights = np.interp(dates_num, ts, ws)
+                    # interpolator = interp1d(ts, ws, bounds_error=False, fill_value=np.nan)
+                    interpolator = interp1d(ts, ws, bounds_error=False, fill_value=0.0)
+                    weights = interpolator(dates_num)
                     # neerWeightDfInterpDict = {
                     #     "Date": dates,
                     #     "reporter": reporter,
@@ -97,8 +112,11 @@ class NeerCalculator:
             # vectorize
             weights_report_ccy = neerWeightDfInterpPivot[(neerWeightDfInterpPivot["reporter"] == report_ccy)]
             weight_report_ccy_ordered = weights_report_ccy[self.fxRateDataDf.columns]
-            wln = (weight_report_ccy_ordered * lnFx).sum(axis=1, skipna=True)
-            ln_NEER_df_ccy = (wln - lnFx[report_ccy]).to_frame()
+            # wln = (weight_report_ccy_ordered * lnFx).sum(axis=1, skipna=True)
+            # ln_NEER_df_ccy = (wln - lnFx[report_ccy]).to_frame()
+            lnFxMinuslnReportCcy = lnFx.subtract(lnFx[report_ccy], axis=0)
+            wln = (weight_report_ccy_ordered * lnFxMinuslnReportCcy).sum(axis=1, skipna=True)
+            ln_NEER_df_ccy = wln.to_frame()
             NEER_df_ccy = np.exp(ln_NEER_df_ccy) * 100
             NEER_df_ccy.columns = [report_ccy]
             NEER_dfs.append(NEER_df_ccy)
