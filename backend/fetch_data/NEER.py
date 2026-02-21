@@ -1,6 +1,4 @@
 from dotenv import load_dotenv
-import os
-import pandas as pd
 from utils.config import *
 from fetch_data.archive.NEER_Manual import computeManualNEER, getTradeData
 from fetch_data.PrecomputedNeer import *
