@@ -20,7 +20,7 @@ class NeerCalculator:
         self.freq = os.getenv("FX_RATE_FREQ")
         freq_label = freqToString(self.freq)
         self.storeFilename = os.getenv("NEER_STORE_DIR") + f"/NEER_{freq_label.upper()}.csv"
-        self.storeDetailFilename = os.getenv("NEER_STORE_DIR") + f"/NEER_DETAIL_{freq_label.upper()}.csv"
+        self.storeDetailFilename = os.getenv("NEER_STORE_DIR") + f"/NEER_DETAIL_{freq_label.upper()}.parquet"
         self.neerWeightDf = neerWeightDf
         self.fxRateDataDf = fxRateDataDf
         # for convenience, replace countries with their currencies
@@ -154,6 +154,6 @@ class NeerCalculator:
         # remove 0 or na in "contribution"
         NEER_detail_df = pd.concat(NEER_detial_dfs).dropna(subset="contribution")
         NEER_detail_df = NEER_detail_df[NEER_detail_df["contribution"] > 1.0e-4]
-        NEER_detail_df.to_csv(self.storeDetailFilename, index=True)
+        NEER_detail_df.to_parquet(self.storeDetailFilename, index=True)
         return NEER_df
 
