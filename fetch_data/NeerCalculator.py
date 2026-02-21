@@ -10,6 +10,7 @@ from utils.config import *
 
 class NeerCalculator:
     storeFilename = ""
+    storeDetailFilename = ""
     freq = ""
     neerWeightDf = None
     neerWeightDfInterp = None
@@ -19,6 +20,7 @@ class NeerCalculator:
         self.freq = os.getenv("FX_RATE_FREQ")
         freq_label = freqToString(self.freq)
         self.storeFilename = os.getenv("NEER_STORE_DIR") + f"/NEER_{freq_label.upper()}.csv"
+        self.storeDetailFilename = os.getenv("NEER_STORE_DIR") + f"/NEER_DETAIL_{freq_label.upper()}.csv"
         self.neerWeightDf = neerWeightDf
         self.fxRateDataDf = fxRateDataDf
         # for convenience, replace countries with their currencies
@@ -64,13 +66,6 @@ class NeerCalculator:
                     # interpolator = interp1d(ts, ws, bounds_error=False, fill_value=np.nan)
                     interpolator = interp1d(ts, ws, bounds_error=False, fill_value=0.0)
                     weights = interpolator(dates_num)
-                    # neerWeightDfInterpDict = {
-                    #     "Date": dates,
-                    #     "reporter": reporter,
-                    #     "partner": partner,
-                    #     "weight": weights,
-                    # }
-                    # neerWeightDfInterps.append(neerWeightDfInterpDict)
                     neerWeightDfInterpPerCcyPair = pd.DataFrame(columns=["Date", "reporter", "partner", "weight"])
                     neerWeightDfInterpPerCcyPair["Date"] = dates
                     neerWeightDfInterpPerCcyPair["reporter"] = reporter
@@ -95,14 +90,16 @@ class NeerCalculator:
         # ln(NEER_it) = \sum_j w_ijt ln(c_jt / c_it)
         # - c_it: value of USD1 in the unit curency i at t
         # ln(NEER_it) = \sum_j w_ijt [ln(c_jt) - ln(c_it)]
+        #             = \sum_j w_ijt wln_ij
+        # where wln   = ln(c_jt) - ln(c_it)
+        # or,
         #             = \sum_j w_ijt ln(c_jt) - \sum_j w_ijt ln(c_it)
         #             = wln - ln(c_it)
-        # wln         = [\sum_j w_ijt ln(c_jt)] - ln(c_it)
-
+        # wln_partner = [\sum_j w_ijt ln(c_jt)] - ln(c_it)
 
         ccies_list = list(self.fxRateDataDf.columns)
-        dates = list(self.fxRateDataDf.index)
         NEER_dfs = []
+        NEER_detial_dfs = []
         neerWeightDfInterpPivot = pd.pivot_table(self.neerWeightDfInterp, values="weight", index=["Date", "reporter"], columns="partner")
         neerWeightDfInterpPivot = neerWeightDfInterpPivot[list(self.fxRateDataDf.columns)]
         neerWeightDfInterpPivot = neerWeightDfInterpPivot.reset_index().set_index("Date")
@@ -112,13 +109,25 @@ class NeerCalculator:
             # vectorize
             weights_report_ccy = neerWeightDfInterpPivot[(neerWeightDfInterpPivot["reporter"] == report_ccy)]
             weight_report_ccy_ordered = weights_report_ccy[self.fxRateDataDf.columns]
-            # wln = (weight_report_ccy_ordered * lnFx).sum(axis=1, skipna=True)
-            # ln_NEER_df_ccy = (wln - lnFx[report_ccy]).to_frame()
+            # wln_partner = (weight_report_ccy_ordered * lnFx).sum(axis=1, skipna=True)
+            # ln_NEER_df_ccy = (wln_partner - lnFx[report_ccy]).to_frame()
             lnFxMinuslnReportCcy = lnFx.subtract(lnFx[report_ccy], axis=0)
-            wln = (weight_report_ccy_ordered * lnFxMinuslnReportCcy).sum(axis=1, skipna=True)
+            contribution = (weight_report_ccy_ordered * lnFxMinuslnReportCcy)
+            wln = contribution.sum(axis=1, skipna=True)
             ln_NEER_df_ccy = wln.to_frame()
             NEER_df_ccy = np.exp(ln_NEER_df_ccy) * 100
             NEER_df_ccy.columns = [report_ccy]
+            # save detail file
+            # columns: Date, reporter, partner, weight, return, contribution
+            for partner_ccy in self.fxRateDataDf.columns:
+                weight_report_partner_ccy_ordered = weight_report_ccy_ordered[partner_ccy].dropna().to_frame().rename(columns={partner_ccy: "weight"})
+                if not weight_report_partner_ccy_ordered.empty:
+                    weight_report_partner_ccy_ordered["return"] = lnFxMinuslnReportCcy[partner_ccy]
+                    weight_report_partner_ccy_ordered["contribution"] = contribution[partner_ccy]
+                    weight_report_partner_ccy_ordered["reporter"] = report_ccy
+                    weight_report_partner_ccy_ordered["partner"] = partner_ccy
+                    weight_report_partner_ccy_ordered = weight_report_partner_ccy_ordered[["reporter", "partner", "weight", "return", "contribution"]]
+                    NEER_detial_dfs.append(weight_report_partner_ccy_ordered)
             NEER_dfs.append(NEER_df_ccy)
         #     for date in dates:
         #         weights_ccy_date = self.neerWeightDfInterp[(self.neerWeightDfInterp["reporter"] == report_ccy)
@@ -141,5 +150,10 @@ class NeerCalculator:
 
         NEER_df = pd.concat(NEER_dfs, axis=1)
         NEER_df.to_csv(self.storeFilename, index=True)
+
+        # remove 0 or na in "contribution"
+        NEER_detail_df = pd.concat(NEER_detial_dfs).dropna(subset="contribution")
+        NEER_detail_df = NEER_detail_df[NEER_detail_df["contribution"] > 1.0e-4]
+        NEER_detail_df.to_csv(self.storeDetailFilename, index=True)
         return NEER_df
 
