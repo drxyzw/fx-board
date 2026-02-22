@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 import os
+import shutil
 import pandas as pd
 import json
 
@@ -41,6 +42,7 @@ if output_parquet:
     df_chart.to_parquet(neer_chart_detail_parquet_file, compression="zstd", index=False)
 
 if output_json:
+    target_dir =  os.getenv("NEER_CHART_DIR") + f"/detail"
     for reporter in df_chart["reporter"].unique():
         df_chart_r = df_chart[df_chart["reporter"] == reporter]
         dates = sorted(df_chart_r["Date"].unique())
@@ -59,6 +61,9 @@ if output_json:
             "Date": sorted(df_chart_r["Date"].astype("str").unique()),
             "partner": partner_dict,
         }
-        target_file = os.getenv("NEER_CHART_DIR") + f"/detail/{reporter}.json"
+        target_file = target_dir + f"/{reporter}.json"
         with open(target_file, "w") as json_file:
             json.dump(df_dict, json_file)
+    fronend_dir = os.getenv("FRONTEND_DATA_DIR") + "/detail"
+    os.makedirs(fronend_dir, exist_ok=True)
+    shutil.copytree(target_dir, fronend_dir, dirs_exist_ok=True)
