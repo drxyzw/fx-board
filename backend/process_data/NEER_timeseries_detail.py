@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 import os
 import shutil
 import pandas as pd
+import numpy as np
 import json
 
 from utils.utils import *
@@ -44,7 +45,7 @@ if output_parquet:
 if output_json:
     target_dir =  os.getenv("NEER_CHART_DIR") + f"/detail"
     for reporter in df_chart["reporter"].unique():
-        df_chart_r = df_chart[df_chart["reporter"] == reporter]
+        df_chart_r = df_chart[df_chart["reporter"] == reporter].replace({np.nan: None})
         dates = sorted(df_chart_r["Date"].unique())
         partner_dict = {}
         for partner in df_chart_r["partner"].unique():

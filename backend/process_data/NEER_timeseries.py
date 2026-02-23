@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 import os
 import shutil
 import pandas as pd
+import numpy as np
 import json
 
 from utils.utils import *
@@ -27,7 +28,8 @@ if output_csv:
     df_flat.to_csv(neer_chart_file, index=False)
 
 if output_json:
-    df_dict = df.to_dict("list")
+    df_none = df.replace({np.nan: None})
+    df_dict = df_none.to_dict("list")
     with open(neer_chart_json_file, "w") as json_file:
         json.dump(df_dict, json_file)
     shutil.copy(neer_chart_json_file, os.getenv("FRONTEND_DATA_DIR"))

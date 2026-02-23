@@ -112,8 +112,10 @@ class NeerCalculator:
             # wln_partner = (weight_report_ccy_ordered * lnFx).sum(axis=1, skipna=True)
             # ln_NEER_df_ccy = (wln_partner - lnFx[report_ccy]).to_frame()
             lnFxMinuslnReportCcy = lnFx.subtract(lnFx[report_ccy], axis=0)
+            # forward-fill to all FX rates are non-nan. So no discontinuity in weighted average FX pair
+            lnFxMinuslnReportCcy = lnFxMinuslnReportCcy.ffill()
             contribution = (weight_report_ccy_ordered * lnFxMinuslnReportCcy)
-            wln = contribution.sum(axis=1, skipna=True)
+            wln = contribution.sum(axis=1, skipna=True, min_count=1).ffill()
             ln_NEER_df_ccy = wln.to_frame()
             NEER_df_ccy = np.exp(ln_NEER_df_ccy) * 100
             NEER_df_ccy.columns = [report_ccy]
@@ -155,5 +157,6 @@ class NeerCalculator:
         NEER_detail_df = pd.concat(NEER_detial_dfs).dropna(subset="contribution")
         NEER_detail_df = NEER_detail_df[NEER_detail_df["contribution"] > 1.0e-4]
         NEER_detail_df.to_parquet(self.storeDetailFilename, index=True)
+        NEER_detail_df.to_csv(self.storeDetailFilename.replace("parquet", "csv"), index=True)
         return NEER_df
 
