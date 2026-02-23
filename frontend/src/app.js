@@ -1,6 +1,7 @@
 const reporterCache = {};
 let timeseriesData;
 let dates;
+let ccy_country_map;
 
 async function loadTimeSeries() {
     const res= await fetch("/data/NEER_CHART_DAILY.json");
@@ -82,9 +83,9 @@ function plotHeatmap(reporter, values) {
         },
         textinfo: "label",
         hovertemplate:
-            "<b>%{label}</b><br>" +
-            "Weight: %{value.2%}<br>" +
-            "Contribution: %{color.2f}%<extra></extra>"
+            '<b>%{label}</b><br>' +
+            'Weight: %{value:.2f}%<br>' +
+            'Contribution: %{color:.2f}%<extra></extra>'
     }]
     const layout = {
         margin: {t:10, l:0, r:0, b:0},
@@ -102,13 +103,18 @@ function plotHeatmap(reporter, values) {
     // });
 }
 
-function plotMap(values) {
+async function plotMap(values) {
+    if(!ccy_country_map) {
+        const res = await fetch(`/data/detail/CCY_COUNTRY.json`);
+        ccy_country_map = await res.json();
+    }
     const partners = Object.keys(values);
+    const country_code = partners.map(p => ccy_country_map[p]);
     const z = partners.map(p => values[p]);
 
     Plotly.newPlot("map", [{
         type: "choropleth",
-        locations: partners,
+        locations: country_code,
         z: z,
         locationmode: "ISO-3",
         colorscale: "RdBu",
@@ -121,21 +127,45 @@ function plotMap(values) {
 
 document.addEventListener("DOMContentLoaded", async() => {
     await loadTimeSeries();
+    // line chart
     plotTimeSeries();
     
-    document.getElementById("timeseries").on("plotly_hover", async function(event) {
-        const reporter = event.points[0].data.name;
-        const start = document.getElementById("startDate").value
-        const end = document.getElementById("endDate").value
-        if(!start | !end) return;
+    // world map
+    const triggerWorldMap = (event) => {
+        const start = document.getElementById("startDate").value;
+        const end = document.getElementById("endDate").value;
+        if(!start || !end) return;
+        const startIdx = getDateIndex(start, dates);
+        const endIdx = getDateIndex(end, dates);
+        if(startIdx == -1 || endIdx == -1) return;
+        if(endIdx > startIdx) {
+            const result = {};
+            for (const partner in timeseriesData) {
+                if (partner === "Date") continue;
+                const arr = timeseriesData[partner];
+                result[partner] = {}
+                const endVal = arr[endIdx];
+                const startVal = startIdx > 0 ? arr[startIdx] : 0;
+                result[partner] = endVal - startVal
+            }
+            plotMap(result);
+        }
+    }
+    document.getElementById("startDate").addEventListener("change", triggerWorldMap);
+    document.getElementById("endDate").addEventListener("change", triggerWorldMap);
 
+    // heatmap
+    document.getElementById("timeseries").on("plotly_hover", async function(event) {
+        const start = document.getElementById("startDate").value;
+        const end = document.getElementById("endDate").value;
+        if(!start || !end) return;
+        const reporter = event.points[0].data.name;
         const reporterData = await loadReporter(reporter);
         const startIdx = getDateIndex(start, reporterData.Date);
         const endIdx = getDateIndex(end, reporterData.Date);
-        if(startIdx == -1 | endIdx == -1) return;
+        if(startIdx == -1 || endIdx == -1) return;
 
-        const values = endIdx > startIdx ? computeRangeValues(reporterData, startIdx, endIdx) : None;
+        const values = endIdx > startIdx ? computeRangeValues(reporterData, startIdx, endIdx) : null;
         plotHeatmap(reporter, values);
-        plotMap(values);
     });
 });

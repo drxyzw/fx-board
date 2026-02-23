@@ -154,8 +154,8 @@ class NeerCalculator:
         NEER_df.to_csv(self.storeFilename, index=True)
 
         # remove 0 or na in "contribution"
-        NEER_detail_df = pd.concat(NEER_detial_dfs).dropna(subset="contribution")
-        NEER_detail_df = NEER_detail_df[NEER_detail_df["contribution"] > 1.0e-4]
+        NEER_detail_df = pd.concat(NEER_detial_dfs).dropna(subset="weight")
+        NEER_detail_df = NEER_detail_df[NEER_detail_df["weight"] > 1.0e-4]
         NEER_detail_df.to_parquet(self.storeDetailFilename, index=True)
         NEER_detail_df.to_csv(self.storeDetailFilename.replace("parquet", "csv"), index=True)
         return NEER_df

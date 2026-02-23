@@ -6,6 +6,7 @@ import numpy as np
 import json
 
 from utils.utils import *
+from utils.config import *
 
 load_dotenv()
 freq = os.getenv("FX_RATE_FREQ")
@@ -19,7 +20,14 @@ if output_csv:
     neer_chart_detail_file = os.getenv("NEER_CHART_DIR") + f"/NEER_DETAIL_CUMUL_{freq_label.upper()}.csv"
 if output_parquet:
     neer_chart_detail_parquet_file = os.getenv("NEER_CHART_DIR") + f"/NEER_DETAIL_CUMUL_{freq_label.upper()}.parquet"
+ccy_country_file = os.getenv("NEER_CHART_DIR") + f"/detail/CCY_COUNTRY.json"
 
+# currency and coutnry map
+ccy_country_dict = {k: v["IMF_DOTS"] for k, v in ccies.items()}
+with open(ccy_country_file, "w") as json_file:
+    json.dump(ccy_country_dict, json_file)
+    
+# detail file
 df = pd.read_parquet(neer_raw_file)
 # impute missing value with previous day's value
 df_imputed = df.ffill().dropna()
@@ -68,3 +76,4 @@ if output_json:
     fronend_dir = os.getenv("FRONTEND_DATA_DIR") + "/detail"
     os.makedirs(fronend_dir, exist_ok=True)
     shutil.copytree(target_dir, fronend_dir, dirs_exist_ok=True)
+

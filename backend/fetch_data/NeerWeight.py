@@ -29,8 +29,10 @@ class ImfNeerWeight(NeerWeight):
             df_trade = pd.read_csv(self.storeFilename, index_col = "Date")
             df_trade.index = pd.to_datetime(df_trade.index)
         else:
+            # remove rows with reporter == partner. this is importtant for EUR because EUR-->EUR trade is not zero
+            df_trade = self.tradeData[self.tradeData["reporter"] != self.tradeData["partner"]]
             df_trade = pd.pivot_table(
-                self.tradeData,
+                df_trade,
                 index=["Date", "reporter", "partner"],
                 columns="indicator",
                 values="value")
