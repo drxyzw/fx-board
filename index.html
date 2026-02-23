@@ -2,12 +2,12 @@
 <html>
     <head>
         <meta charset="utf-8"/>
-        <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"/>
+        <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
         <title>FX board</title>
         <style>
             body {font-family: Arial; margin: 30px;}
             #layout {display: grid; grid-template-columns: 1fr 1fr; gap: 20px;}
-            #timeseries {grid-column: 1/span 2;}
+            #timeseries {grid-column: 1 / span 2;}
         </style>
     </head>
     <body>
@@ -17,10 +17,11 @@
         <label>End</label>
         <input type="date" id="endDate"/>
 
+        <div id="timeseries"></div>
+
         <div id="layout">
-            <div id="heatmap"/>
-            <div id="map"/>
+            <div id="heatmap"></div>
+            <div id="map"></div>
         </div>
-        <script scr="src/app.js"/>
+        <script type="module" src="src/app.js"></script>
     </body>
-</html>
