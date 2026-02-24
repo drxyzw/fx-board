@@ -24,9 +24,11 @@ ccy_country_file = os.getenv("NEER_CHART_DIR") + f"/detail/CCY_COUNTRY.json"
 
 # currency and coutnry map
 ccy_country_dict = {k: v["IMF_DOTS"] for k, v in ccies.items()}
+if "EUR" in ccy_country_dict.keys():
+    ccy_country_dict["EUR"] = euro_countries
 with open(ccy_country_file, "w") as json_file:
     json.dump(ccy_country_dict, json_file)
-    
+
 # detail file
 df = pd.read_parquet(neer_raw_file)
 # impute missing value with previous day's value

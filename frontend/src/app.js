@@ -70,11 +70,15 @@ function plotHeatmap(reporter, values) {
         type: "treemap",
         // paper_bgcolor: "rgba(0,0,0,0)",
         // plot_bgcolor: "rgba(0,0,0,0)",
-        // tiling: {packing: "squarify"},
         labels: partners,
         parents: group,
-        branchvalues: "remainder",
-        root: { visible: false},
+        branchvalues: "total",
+        pathbar: { visible: false },
+        root: {
+            visible: true,
+            color: "rgba(0,0,0,0)",
+        },
+        // tiling: {packing: "squarify"},
         values: weight,
         // domain: { x: [0, 1], y: [0, 1] },
         marker: {
@@ -90,6 +94,9 @@ function plotHeatmap(reporter, values) {
             line: {width: 1}
         },
         textinfo: "label",
+        // hoverlabel: {
+        //     namelength: 0,
+        // },
         hovertemplate:
             '<b>%{label}</b><br>' +
             'Weight: %{value:.2f}%<br>' +
@@ -101,6 +108,7 @@ function plotHeatmap(reporter, values) {
     const layout = {
         margin: {t:0, l:0, r:0, b:0},
         // margin: {t:10, l:0, r:0, b:0},
+        // clickmode: "none",
     };
     Plotly.react("heatmap", data, layout);
     // Plotly.newPlot("heatmap", data, layout);
@@ -122,9 +130,12 @@ async function plotMap(values) {
         ccy_country_map = await res.json();
     }
     const partners = Object.keys(values);
-    const country_code = partners.map(p => ccy_country_map[p]);
-    const z = partners.map(p => values[p]);
-
+    const country_code = partners.flatMap(p => ccy_country_map[p]);
+    const z = Object.entries(values).flatMap(([ccy, val]) => {
+        const countries = ccy_country_map[ccy] ?? [];
+        const countryList = Array.isArray(countries) ? countries : [countries];
+        return countryList.map(() => val);
+    });
     Plotly.newPlot("map", [{
         type: "choropleth",
         locations: country_code,

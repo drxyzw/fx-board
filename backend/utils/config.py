@@ -74,6 +74,10 @@ ccies = {
     "VND": {"Include": True, "IMF_NEER":   None, "BIS_NEER": None, "IMF_DOTS": "VNM", "UNCT": 704, "BIS_FX": None, "BIS_FX_DOM":  None},
 }
 
+euro_countries = [
+            "AUT", "BEL", "CYP", "EST", "FIN", "FRA", "DEU", "GRC",
+            "IRL", "ITA", "LVA", "LTU", "LUX", "MLT", "NLD", "PRT", "SVK", "SVN", "ESP"]
+            
 ns = {
     'mes': 'http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message',
     'gen': 'http://www.sdmx.org/resources/sdmxml/schemas/v2_1/data/generic',
