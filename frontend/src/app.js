@@ -22,11 +22,15 @@ function plotTimeSeries() {
         mode: "lines",
         name: c,
     }));
-
-    Plotly.newPlot("timeseries", traces, {
+    const layout = {
         title: "NEER trend",
         hovermode: "closest",
-    });
+        xaxis: {
+            type: "date",
+            hoverformat: "%d %b %Y",
+        }
+    }
+    Plotly.newPlot("timeseries", traces, layout);
 }
 
 async function loadReporter(reporter) {
@@ -148,17 +152,30 @@ async function plotMap(values) {
         title: "Return of each NEER",
     });
 }
-
+function shiftPastDate(yyyymmdd) {
+    const yearStr = yyyymmdd.substring(0, 4);
+    const year = parseInt(yearStr, 10) - 1;
+    const mmdd = yyyymmdd.substring(4);
+    return year.toString() + mmdd;
+}
 document.addEventListener("DOMContentLoaded", async() => {
     await loadTimeSeries();
     // line chart
     plotTimeSeries();
     
     // world map
+    // default date
+    const lastDate = timeseriesData["Date"][timeseriesData["Date"].length-1];
+    const pastDate = shiftPastDate(lastDate);
+    const startInput = document.getElementById("startDate");
+    const endInput = document.getElementById("endDate");
+    if (!startInput.value) startInput.value = pastDate;
+    if (!endInput.value) endInput.value = lastDate;
     const triggerWorldMap = (event) => {
+
         const start = document.getElementById("startDate").value;
         const end = document.getElementById("endDate").value;
-        if(!start || !end) return;
+        // if(!start || !end) return;
         const startIdx = getDateIndex(start, dates);
         const endIdx = getDateIndex(end, dates);
         if(startIdx == -1 || endIdx == -1) return;
@@ -175,8 +192,9 @@ document.addEventListener("DOMContentLoaded", async() => {
             plotMap(result);
         }
     }
-    document.getElementById("startDate").addEventListener("change", triggerWorldMap);
-    document.getElementById("endDate").addEventListener("change", triggerWorldMap);
+    triggerWorldMap();
+    startInput.addEventListener("change", triggerWorldMap);
+    endInput.addEventListener("change", triggerWorldMap);
 
     // heatmap
     document.getElementById("timeseries").on("plotly_hover", async function(event) {

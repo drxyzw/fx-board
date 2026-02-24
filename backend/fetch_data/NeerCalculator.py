@@ -118,7 +118,11 @@ class NeerCalculator:
             wln = contribution.sum(axis=1, skipna=True, min_count=1).ffill()
             ln_NEER_df_ccy = wln.to_frame()
             NEER_df_ccy = np.exp(ln_NEER_df_ccy) * 100
+            # first few rows are 0, NaN, or 100., and we replace it with NaN
             NEER_df_ccy.columns = [report_ccy]
+            is_valid = ~NEER_df_ccy[report_ccy].isin([0.0, np.nan, 100])
+            has_started = is_valid.cummax()
+            NEER_df_ccy.loc[~has_started, report_ccy] = np.nan
             # save detail file
             # columns: Date, reporter, partner, weight, return, contribution
             for partner_ccy in self.fxRateDataDf.columns:
