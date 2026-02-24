@@ -62,13 +62,21 @@ function plotHeatmap(reporter, values) {
     const ret = partners.map(p => values[p]["cum_return"]);
     const weight = partners.map(p => values[p]["cum_weight"]);
     const contrib = partners.map(p => values[p]["cum_contribution"]);
-    const group = Array(ret.length).fill("");
+    const group = Array(partners.length).fill("");
+    // partners.map(() => "");
+    // const group = partners.map(() => reporter + "NEER impact from partner currencies");
 
     const data = [{
         type: "treemap",
+        // paper_bgcolor: "rgba(0,0,0,0)",
+        // plot_bgcolor: "rgba(0,0,0,0)",
+        // tiling: {packing: "squarify"},
         labels: partners,
         parents: group,
+        branchvalues: "remainder",
+        root: { visible: false},
         values: weight,
+        // domain: { x: [0, 1], y: [0, 1] },
         marker: {
             colors: contrib,
             colorscale: [
@@ -85,12 +93,17 @@ function plotHeatmap(reporter, values) {
         hovertemplate:
             '<b>%{label}</b><br>' +
             'Weight: %{value:.2f}%<br>' +
-            'Contribution: %{color:.2f}%<extra></extra>'
+            'Contribution: %{color:.2f}%<extra></extra>',
+        // hoverinfo: "label+value",
+        // textinfo: "label",
+        // tiling: { pad: 2 }
     }]
     const layout = {
-        margin: {t:10, l:0, r:0, b:0},
+        margin: {t:0, l:0, r:0, b:0},
+        // margin: {t:10, l:0, r:0, b:0},
     };
-    Plotly.newPlot("heatmap", data, layout);
+    Plotly.react("heatmap", data, layout);
+    // Plotly.newPlot("heatmap", data, layout);
     // Plotly.newPlot("heatmap", [{
     //     z: z,
     //     x: partners,
@@ -121,7 +134,7 @@ async function plotMap(values) {
         reversescale: true,
     }], {
         geo: { projection: {type: "natural earth"}},
-        title: "Returns by Trade Partner",
+        title: "Return of each NEER",
     });
 }
 
