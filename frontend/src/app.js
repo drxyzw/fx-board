@@ -15,6 +15,30 @@ async function loadTimeSeries() {
     dates = timeseriesData.Date;
 }
 
+function alignSliderWithChart() {
+    const gd = document.getElementById('timeseries');
+    const wrapper = document.querySelector('.slider-align-wrapper');
+    
+    // 1. Get the internal plotting rectangle (the actual grid area)
+    const plotArea = gd.querySelector('.nse-grid') || gd.querySelector('.xy') || gd.querySelector('.gridlayer');
+    
+    if (!gd || !plotArea || !wrapper) return;
+
+    const plotRect = plotArea.getBoundingClientRect();
+    const wrapperRect = wrapper.parentElement.getBoundingClientRect();
+
+    // 2. Calculate offsets relative to the common parent (the container)
+    // We want the slider track to start EXACTLY where the grid starts
+    const leftPadding = plotRect.left - wrapperRect.left;
+    
+    // And end EXACTLY where the grid ends
+    const rightPadding = wrapperRect.right - plotRect.right;
+
+    // 3. Apply to CSS variables
+    wrapper.style.setProperty('--chart-margin-left', `${leftPadding}px`);
+    wrapper.style.setProperty('--chart-margin-right', `${rightPadding}px`);
+}
+
 function plotTimeSeries() {
     const currencies = Object.keys(timeseriesData).filter(k => k != "Date");
     // 2026 Terminal Palette: High contrast, low repetition
@@ -40,26 +64,35 @@ function plotTimeSeries() {
         plot_bgcolor: "rgba(0,0,0,0)",
         title: "NEER trend",
         hovermode: "closest",
+        margin: { l: 50, r: 180, t: 40, b: 40 },
         xaxis: {
             type: "date",
             gridcolor: "#1e293b",
             tickfont: { size: 11, color: "#94a3b8" },
             hoverformat: "%d %b %Y",
+            automargin: false,
         },
         yaxis: {
+            side: "right",
             gridcolor: "#1e293b",
             tickfont: { size: 11, color: "#94a3b8" },
-            hoverformat: "%d %b %Y",
+            tickpadding: 15,
+            automargin: false,
         },
         legend: {
+            orientation: "v",
+            x: 1.1,
+            y: 1,
             font: { size: 10, color: "#94a3b8" },
-            bgcolor: "rgba(0,0,0,0)"
+            bgcolor: "rgba(0,0,0,0)",
         }
     };
     const config = {
         responsive: true,
     };
-    Plotly.newPlot("timeseries", traces, layout, config);
+    Plotly.newPlot("timeseries", traces, layout, config).then(() => {
+        alignSliderWithChart();
+    });
 }
 
 async function loadReporter(reporter) {
