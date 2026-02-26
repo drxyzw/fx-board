@@ -1,3 +1,5 @@
+import { CONFIG } from "./config"
+
 const reporterCache = {};
 let timeseriesData;
 let dates;
@@ -41,20 +43,23 @@ function alignSliderWithChart() {
 
 function plotTimeSeries() {
     const currencies = Object.keys(timeseriesData).filter(k => k != "Date");
-    // 2026 Terminal Palette: High contrast, low repetition
-    const colorPalette = [
-        '#3a86ff', '#06d6a0', '#ff006e', '#ffbe0b', '#fb5607', '#9747ff', 
-        '#00f5ff', '#ff0000', '#70e000', '#ff9100', '#00b4d8', '#f15bb5'
-    ];
+    // // 2026 Terminal Palette: High contrast, low repetition
+    // const colorPalette = [
+    //     '#3a86ff', '#06d6a0', '#ff006e', '#ffbe0b', '#fb5607', '#9747ff', 
+    //     '#00f5ff', '#ff0000', '#70e000', '#ff9100', '#00b4d8', '#f15bb5'
+    // ];
+    const initial_ccies = CONFIG.initial_currencies;
 
     const traces = currencies.map((c, i) => ({
         x: dates,
         y: timeseriesData[c],
         name: c,
         mode: "lines",
+        visible: initial_ccies.includes(c) ? true : "legendonly",
         line: {
             width: 1.2,
-            color: colorPalette[i % colorPalette.length],
+            color: `hsl(${(i * 137.5) % 360}, 70%, 60%)`, // HSL color scheme
+            // color: colorPalette[i % colorPalette.length],
         },
     }));
 
