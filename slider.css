@@ -66,11 +66,20 @@ h2{
     font-family: monospace;
 }
 
+.slider-align-wrapper {
+    /* padding-left matches layout.margin.l = 50px */
+    /* padding-right matches layout.margin.r = 180px */
+    padding-left: var(--chart-margin-left, 42px);
+    padding-right: var(--chart-margin-right, 142px);
+    width: 100%;
+    box-sizing: border-box;
+    transition: padding 0.2s ease;
+}
+
 .range-container {
     position: relative;
     width: 100%;
     height: 50px;
-    margin-top: 20px;
 }
 .slider-track {
     width: 100%;
@@ -89,6 +98,7 @@ input[type="range"] {
     position: absolute;
     margin: auto;
     top: 0; bottom: 0;
+    left: 0; right: 0;
     background-color: transparent;
     pointer-events: none;
 }
