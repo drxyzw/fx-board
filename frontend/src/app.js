@@ -17,21 +17,50 @@ async function loadTimeSeries() {
 
 function plotTimeSeries() {
     const currencies = Object.keys(timeseriesData).filter(k => k != "Date");
-    const traces = currencies.map(c => ({
+    // 2026 Terminal Palette: High contrast, low repetition
+    const colorPalette = [
+        '#3a86ff', '#06d6a0', '#ff006e', '#ffbe0b', '#fb5607', '#9747ff', 
+        '#00f5ff', '#ff0000', '#70e000', '#ff9100', '#00b4d8', '#f15bb5'
+    ];
+
+    const traces = currencies.map((c, i) => ({
         x: dates,
         y: timeseriesData[c],
-        mode: "lines",
         name: c,
+        mode: "lines",
+        line: {
+            width: 1.2,
+            color: colorPalette[i % colorPalette.length],
+        },
     }));
+
     const layout = {
+        template: "plotly_dark",
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
         title: "NEER trend",
         hovermode: "closest",
         xaxis: {
             type: "date",
+            gridcolor: "#1e293b",
+            tickfont: { size: 11, color: "#94a3b8" },
             hoverformat: "%d %b %Y",
+        },
+        yaxis: {
+            type: "date",
+            gridcolor: "#1e293b",
+            tickfont: { size: 11, color: "#94a3b8" },
+            hoverformat: "%d %b %Y",
+        },
+        legend: {
+            font: { size: 10, color: "#94a3b8" },
+            bgcolor: "rgba(0,0,0,0)"
         }
-    }
-    Plotly.newPlot("timeseries", traces, layout);
+    };
+    const config = {
+        responsive: true,
+    };
+    Plotly.newPlot("timeseries", traces, layout, config);
 }
 
 async function loadReporter(reporter) {
