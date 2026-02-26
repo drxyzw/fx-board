@@ -47,7 +47,6 @@ function plotTimeSeries() {
             hoverformat: "%d %b %Y",
         },
         yaxis: {
-            type: "date",
             gridcolor: "#1e293b",
             tickfont: { size: 11, color: "#94a3b8" },
             hoverformat: "%d %b %Y",
