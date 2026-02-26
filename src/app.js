@@ -7,11 +7,11 @@ let heatmap_reporter;
 async function loadTimeSeries() {
     const res= await fetch("/data/NEER_CHART_DAILY.json");
     timeseriesData = await res.json();
-    timeseriesData = {
-        "Date": timeseriesData.Date,
-        "USD": timeseriesData.USD,
-        "JPY": timeseriesData.JPY,
-        "EUR": timeseriesData.EUR}
+    // timeseriesData = {
+    //     "Date": timeseriesData.Date,
+    //     "USD": timeseriesData.USD,
+    //     "JPY": timeseriesData.JPY,
+    //     "EUR": timeseriesData.EUR}
     dates = timeseriesData.Date;
 }
 
