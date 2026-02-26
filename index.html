@@ -6,35 +6,41 @@
         <link rel="stylesheet" href="slider.css">
         <title>FX board</title>
         <style>
-            body {font-family: Arial; margin: 30px;}
             #layout {display: grid; grid-template-columns: 1fr 1fr; gap: 20px;}
-            #timeseries {grid-column: 1 / span 2;}
+            #timeseries { width: 100%; height: 100%; }
         </style>
     </head>
     <body>
         <h2>NEER analysis</h2>
-        <div id="timeseries"></div>
+        <div id="layout">
+            <div class="chart-card">
+                <div id="timeseries"></div>
+            </div>
 
-        <!-- <div style="width: 100%; padding: 20px 0;">
-            <label>Time Range for World Map and Heatmap</label>
-            <input type="range" id="rangeSlider" style="width: 100%;" min="0" value="100"/>
-        </div> -->
-        <div class="range-container">
-            <div class="slider-track"></div>
-            <input type="range" id="slider-1">
-            <input type="range" id="slider-2">
-        </div>
-        <div class="date-display">
-            <label>Start: <input type="date" id="startDate"></label>
-            <label>End: <input type="date" id="endDate"></label>
-        </div>
-        <!-- <label>Start</label>
-        <input type="date" id="startDate"/>
-        <label>End</label>
-        <input type="date" id="endDate"/>
- -->
-        <div id="map"></div>
-        <div id="heatmap"></div>
+            <!-- <div style="width: 100%; padding: 20px 0;">
+                <label>Time Range for World Map and Heatmap</label>
+                <input type="range" id="rangeSlider" style="width: 100%;" min="0" value="100"/>
+            </div> -->
+            <div class="controls-section">
+                <div class="range-container">
+                    <div class="slider-track"></div>
+                    <input type="range" id="slider-1">
+                    <input type="range" id="slider-2">
+                </div>
+                <div class="date-display">
+                    <label>Start: <input type="date" id="startDate"></label>
+                    <label>End: <input type="date" id="endDate"></label>
+                </div>
+            </div>
+            <!-- <label>Start</label>
+            <input type="date" id="startDate"/>
+            <label>End</label>
+            <input type="date" id="endDate"/>
+             -->
+            <div id="map"></div>
+            <div id="heatmap"></div>
+            </div>
         </div>
         <script type="module" src="src/app.js"></script>
     </body>
+</html>
