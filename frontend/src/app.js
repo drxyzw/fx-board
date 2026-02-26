@@ -2,6 +2,7 @@ const reporterCache = {};
 let timeseriesData;
 let dates;
 let ccy_country_map;
+let heatmap_reporter;
 
 async function loadTimeSeries() {
     const res= await fetch("/data/NEER_CHART_DAILY.json");
@@ -193,12 +194,6 @@ document.addEventListener("DOMContentLoaded", async() => {
     const triggerWorldMap = (event) => {
         const val1 = parseInt(slider1.value);
         const val2 = parseInt(slider2.value);
-
-        // const start = document.getElementById("startDate").value;
-        // const end = document.getElementById("endDate").value;
-        // // if(!start || !end) return;
-        // const startIdx = getDateIndex(start, dates);
-        // const endIdx = getDateIndex(end, dates);
         const startIdx = Math.min(val1, val2);
         const endIdx = Math.max(val1, val2);
         startInput.value = dates[startIdx];
@@ -221,17 +216,25 @@ document.addEventListener("DOMContentLoaded", async() => {
     slider2.addEventListener("input", triggerWorldMap);
 
     // heatmap
-    document.getElementById("timeseries").on("plotly_hover", async function(event) {
+    async function triggerHeatmap(event) {
+        const eventForType = event.event ?? event;
         const start = document.getElementById("startDate").value;
         const end = document.getElementById("endDate").value;
         if(!start || !end) return;
-        const reporter = event.points[0].data.name;
-        const reporterData = await loadReporter(reporter);
-        const startIdx = getDateIndex(start, reporterData.Date);
-        const endIdx = getDateIndex(end, reporterData.Date);
-        if(startIdx == -1 || endIdx == -1) return;
+        if(eventForType.type == "mousemove") { // hovering a line chart
+            heatmap_reporter = event.points[0].data.name;
+        }
+        if(heatmap_reporter) {
+            const reporterData = await loadReporter(heatmap_reporter);
+            const startIdx = getDateIndex(start, reporterData.Date);
+            const endIdx = getDateIndex(end, reporterData.Date);
+            if(startIdx == -1 || endIdx == -1) return;
 
-        const values = endIdx > startIdx ? computeRangeValues(reporterData, startIdx, endIdx) : null;
-        plotHeatmap(reporter, values);
-    });
+            const values = endIdx > startIdx ? computeRangeValues(reporterData, startIdx, endIdx) : null;
+            plotHeatmap(heatmap_reporter, values);
+        }
+    }
+    document.getElementById("timeseries").on("plotly_hover", triggerHeatmap);
+    slider1.addEventListener("input", triggerHeatmap);
+    slider2.addEventListener("input", triggerHeatmap);
 });
