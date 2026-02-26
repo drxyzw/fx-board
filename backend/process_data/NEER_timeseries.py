@@ -28,7 +28,7 @@ if output_csv:
     df_flat.to_csv(neer_chart_file, index=False)
 
 if output_json:
-    df_none = df.replace({np.nan: None})
+    df_none = df_imputed.replace({np.nan: None})
     df_dict = df_none.to_dict("list")
     with open(neer_chart_json_file, "w") as json_file:
         json.dump(df_dict, json_file)

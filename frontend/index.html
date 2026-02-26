@@ -3,6 +3,7 @@
     <head>
         <meta charset="utf-8"/>
         <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+        <link rel="stylesheet" href="slider.css">
         <title>FX board</title>
         <style>
             body {font-family: Arial; margin: 30px;}
@@ -14,11 +15,24 @@
         <h2>NEER analysis</h2>
         <div id="timeseries"></div>
 
-        <label>Start</label>
+        <!-- <div style="width: 100%; padding: 20px 0;">
+            <label>Time Range for World Map and Heatmap</label>
+            <input type="range" id="rangeSlider" style="width: 100%;" min="0" value="100"/>
+        </div> -->
+        <div class="range-container">
+            <div class="slider-track"></div>
+            <input type="range" id="slider-1">
+            <input type="range" id="slider-2">
+        </div>
+        <div class="date-display">
+            <label>Start: <input type="date" id="startDate"></label>
+            <label>End: <input type="date" id="endDate"></label>
+        </div>
+        <!-- <label>Start</label>
         <input type="date" id="startDate"/>
         <label>End</label>
         <input type="date" id="endDate"/>
-
+ -->
         <div id="map"></div>
         <div id="heatmap"></div>
         </div>

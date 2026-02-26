@@ -44,8 +44,7 @@ for reporter in df_imputed["reporter"].unique():
         df_ts["return"] = df_ts["return"].cumsum().astype("float32")
         df_ts["contribution"] = df_ts["contribution"].cumsum().astype("float32")
         df_tss.append(df_ts)
-df_chart = pd.concat(df_tss).reset_index(drop=False).rename(
-    columns={"weight": "cum_weight", "return": "cum_return", "contribution": "cum_contribution"})
+df_chart = pd.concat(df_tss).reset_index(drop=False)
 
 if output_csv:
     df_chart.to_csv(neer_chart_detail_file, index=False)
@@ -59,14 +58,14 @@ if output_json:
         dates = sorted(df_chart_r["Date"].unique())
         partner_dict = {}
         for partner in df_chart_r["partner"].unique():
-            df_chart_rp = df_chart_r[df_chart_r["partner"] == partner][["Date", "cum_weight", "cum_return", "cum_contribution"]]
+            df_chart_rp = df_chart_r[df_chart_r["partner"] == partner][["Date", "weight", "return", "contribution"]]
             df_chart_rp = df_chart_rp.set_index("Date")
             df_chart_rp = df_chart_rp.reindex(dates)
             df_chart_rp = df_chart_rp.ffill().fillna(0.)
             partner_dict[partner] = {
-                        "cum_weight": df_chart_rp["cum_weight"].to_list(),
-                        "cum_return": df_chart_rp["cum_return"].to_list(),
-                        "cum_contribution": df_chart_rp["cum_contribution"].to_list(),
+                        "weight": df_chart_rp["weight"].to_list(),
+                        "return": df_chart_rp["return"].to_list(),
+                        "contribution": df_chart_rp["contribution"].to_list(),
                     }
         df_dict = {
             "Date": sorted(df_chart_r["Date"].astype("str").unique()),

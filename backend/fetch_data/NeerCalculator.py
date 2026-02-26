@@ -77,12 +77,6 @@ class NeerCalculator:
         neerWeightDfInterp = neerWeightDfInterp.set_index("Date")
         self.neerWeightDfInterp = neerWeightDfInterp
         print("initialized NEER weight")
-
-        # Normalize FX rate by base year
-        base_year = int(os.getenv("NEER_BASE_YEAR"))
-        base_year_mask = [t.year == base_year for t in self.fxRateDataDf.index]
-        base_year_fx_rate = self.fxRateDataDf[base_year_mask].mean()
-        self.fxRateDataDf = self.fxRateDataDf / base_year_fx_rate
         print("initialized NEER fx rate")
 
     def calculate(self):
@@ -114,10 +108,11 @@ class NeerCalculator:
             lnFxMinuslnReportCcy = lnFx.subtract(lnFx[report_ccy], axis=0)
             # forward-fill to all FX rates are non-nan. So no discontinuity in weighted average FX pair
             lnFxMinuslnReportCcy = lnFxMinuslnReportCcy.ffill()
-            contribution = (weight_report_ccy_ordered * lnFxMinuslnReportCcy)
+            lnFxMinuslnReportCcydiff = lnFxMinuslnReportCcy.diff()
+            contribution = (weight_report_ccy_ordered * lnFxMinuslnReportCcydiff)
             wln = contribution.sum(axis=1, skipna=True, min_count=1).ffill()
-            ln_NEER_df_ccy = wln.to_frame()
-            NEER_df_ccy = np.exp(ln_NEER_df_ccy) * 100
+            ln_NEER_df_ccy = wln.to_frame().cumsum()
+            NEER_df_ccy = np.exp(ln_NEER_df_ccy) * 100.0
             # first few rows are 0, NaN, or 100., and we replace it with NaN
             NEER_df_ccy.columns = [report_ccy]
             is_valid = ~NEER_df_ccy[report_ccy].isin([0.0, np.nan, 100])
@@ -128,7 +123,7 @@ class NeerCalculator:
             for partner_ccy in self.fxRateDataDf.columns:
                 weight_report_partner_ccy_ordered = weight_report_ccy_ordered[partner_ccy].dropna().to_frame().rename(columns={partner_ccy: "weight"})
                 if not weight_report_partner_ccy_ordered.empty:
-                    weight_report_partner_ccy_ordered["return"] = lnFxMinuslnReportCcy[partner_ccy]
+                    weight_report_partner_ccy_ordered["return"] = lnFxMinuslnReportCcydiff[partner_ccy]
                     weight_report_partner_ccy_ordered["contribution"] = contribution[partner_ccy]
                     weight_report_partner_ccy_ordered["reporter"] = report_ccy
                     weight_report_partner_ccy_ordered["partner"] = partner_ccy
@@ -155,6 +150,11 @@ class NeerCalculator:
         # NEER_df = pd.pivot_table(NEER_df, values="neer", index="reporter", columns="Date")
 
         NEER_df = pd.concat(NEER_dfs, axis=1)
+        # Normalize FX rate by base year
+        base_year = int(os.getenv("NEER_BASE_YEAR"))
+        base_year_mask = [t.year == base_year for t in NEER_df.index]
+        base_year_fx_rate = NEER_df[base_year_mask].mean()
+        NEER_df = NEER_df / base_year_fx_rate * 100.0
         NEER_df.to_csv(self.storeFilename, index=True)
 
         # remove 0 or na in "contribution"

@@ -35,7 +35,7 @@ if not onlyPrecomputed:
 
     # Weight from trade data
     neerWeight = ImfNeerWeight(tradeData=tradeDataDf)
-    neerWeightDf = neerWeight.computeWeight(loadFileIfExists=True)
+    neerWeightDf = neerWeight.computeWeight(loadFileIfExists=False)
 
     # Bilateral FX
     fxRateData = BisFXRateData()

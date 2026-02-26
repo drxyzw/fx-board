@@ -5,6 +5,7 @@ from dateutil.relativedelta import relativedelta
 import numpy as np
 
 from utils.utils import *
+from utils.config import *
 
 class NeerWeight:
     tradeData = ""
@@ -44,6 +45,11 @@ class ImfNeerWeight(NeerWeight):
             df_trade = df_trade.merge(df_mirror, on=["Date", "reporter", "partner"], how="left")
             df_trade["import_export"] = df_trade["import_export"].fillna(df_trade["import_export_mirror"])
             df_trade = df_trade[["Date", "reporter", "partner", "import_export"]]
+            # Take care of reporter in "ccies" which is not in IMF DOTS data (df_trade) at all like Taiwan
+            ccies_reporter = [v["IMF_DOTS"] for v in ccies.values()]
+            missing_reporter = list(set(ccies_reporter) - set(df_trade["reporter"]))
+            df_missing_reporter = df_mirror[df_mirror["reporter"].isin(missing_reporter)]
+            df_trade = pd.concat([df_trade, df_missing_reporter.rename(columns={"import_export_mirror": "import_export"})])
             # ratio among all parter countries
             df_trade["weight"] = df_trade["import_export"] / df_trade.groupby(["Date", "reporter"])["import_export"].transform("sum")
             # if weight < minWeightCutOff, impute it as 0, then renormalize
@@ -65,8 +71,9 @@ class ImfNeerWeight(NeerWeight):
                 freq_factor = 12
             else:
                 raise ValueError("Trade data only supports frequency of annually or monthly, but frequency is: " + self.freq)
+            freq_unit = int(os.getenv("TRADE_MOVING_AVE_YERS"))
             df_trade[partner_cols] = df_trade.groupby("reporter")[partner_cols].transform(
-                lambda x: x.rolling(window=3*freq_factor, min_periods=1).mean()
+                lambda x: x.rolling(window=freq_unit*freq_factor, min_periods=1).mean()
             )
             df_trade = pd.melt(df_trade,
                                id_vars=["Date", "reporter"],
