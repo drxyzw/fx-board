@@ -56,16 +56,16 @@ function computeRangeValues(data, startIdx, endIdx) {
             const startVal = startIdx > 0 ? arr[key][startIdx] : 0;
             result[partner][key] = endVal - startVal
         }
-        result[partner]["cum_weight"] /= endIdx - startIdx
+        result[partner]["weight"] /= endIdx - startIdx
     }
     return result;
 }
 
 function plotHeatmap(reporter, values) {
     const partners = Object.keys(values);
-    const ret = partners.map(p => values[p]["cum_return"]);
-    const weight = partners.map(p => values[p]["cum_weight"]);
-    const contrib = partners.map(p => values[p]["cum_contribution"]);
+    const ret = partners.map(p => values[p]["return"]);
+    const weight = partners.map(p => values[p]["weight"]);
+    const contrib = partners.map(p => values[p]["contribution"]);
     const group = Array(partners.length).fill("");
     // partners.map(() => "");
     // const group = partners.map(() => reporter + "NEER impact from partner currencies");
@@ -140,12 +140,20 @@ async function plotMap(values) {
         const countryList = Array.isArray(countries) ? countries : [countries];
         return countryList.map(() => val);
     });
+    const cmax = Math.max([Math.max(...z), Math.min(...z)]);
     Plotly.newPlot("map", [{
         type: "choropleth",
         locations: country_code,
         z: z,
         locationmode: "ISO-3",
-        colorscale: "RdBu",
+        colorscale: [
+            [0.0, "#006400"],
+            [0.5, "#f0f0f0"],
+            [1.0, "#8b0000"]
+        ],
+        cmin: -cmax,
+        cmax: cmax,
+        cmid: 0.0,
         reversescale: true,
     }], {
         geo: { projection: {type: "natural earth"}},
@@ -163,38 +171,54 @@ document.addEventListener("DOMContentLoaded", async() => {
     // line chart
     plotTimeSeries();
     
-    // world map
+    // date range slider
+    const slider1 = document.getElementById("slider-1");
+    const slider2 = document.getElementById("slider-2");
+    const maxIdx = dates.length - 1;
+    slider1.min = 0;
+    slider1.max = maxIdx;
+    slider1.value = 0;
+    slider2.min = 0;
+    slider2.max = maxIdx;
+    slider2.value = maxIdx;
     // default date
-    const lastDate = timeseriesData["Date"][timeseriesData["Date"].length-1];
-    const pastDate = shiftPastDate(lastDate);
+    // const lastDate = timeseriesData["Date"][timeseriesData["Date"].length-1];
+    // const pastDate = shiftPastDate(lastDate);
     const startInput = document.getElementById("startDate");
     const endInput = document.getElementById("endDate");
-    if (!startInput.value) startInput.value = pastDate;
-    if (!endInput.value) endInput.value = lastDate;
-    const triggerWorldMap = (event) => {
+    // if (!startInput.value) startInput.value = pastDate;
+    // if (!endInput.value) endInput.value = lastDate;
 
-        const start = document.getElementById("startDate").value;
-        const end = document.getElementById("endDate").value;
-        // if(!start || !end) return;
-        const startIdx = getDateIndex(start, dates);
-        const endIdx = getDateIndex(end, dates);
+    // world map
+    const triggerWorldMap = (event) => {
+        const val1 = parseInt(slider1.value);
+        const val2 = parseInt(slider2.value);
+
+        // const start = document.getElementById("startDate").value;
+        // const end = document.getElementById("endDate").value;
+        // // if(!start || !end) return;
+        // const startIdx = getDateIndex(start, dates);
+        // const endIdx = getDateIndex(end, dates);
+        const startIdx = Math.min(val1, val2);
+        const endIdx = Math.max(val1, val2);
+        startInput.value = dates[startIdx];
+        endInput.value = dates[endIdx];
+
         if(startIdx == -1 || endIdx == -1) return;
-        if(endIdx > startIdx) {
-            const result = {};
-            for (const partner in timeseriesData) {
-                if (partner === "Date") continue;
-                const arr = timeseriesData[partner];
-                result[partner] = {}
-                const endVal = arr[endIdx];
-                const startVal = startIdx > 0 ? arr[startIdx] : 0;
-                result[partner] = endVal - startVal
-            }
-            plotMap(result);
+        const result = {};
+        for (const partner in timeseriesData) {
+            if (partner === "Date") continue;
+            const arr = timeseriesData[partner];
+            const endVal = arr[endIdx];
+            const startVal = arr[startIdx];
+            result[partner] = endVal - startVal;
         }
-    }
+        plotMap(result);
+    };
+
     triggerWorldMap();
-    startInput.addEventListener("change", triggerWorldMap);
-    endInput.addEventListener("change", triggerWorldMap);
+    slider1.addEventListener("input", triggerWorldMap);
+    slider2.addEventListener("input", triggerWorldMap);
 
     // heatmap
     document.getElementById("timeseries").on("plotly_hover", async function(event) {
