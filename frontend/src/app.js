@@ -308,7 +308,7 @@ document.addEventListener("DOMContentLoaded", async() => {
     triggerWorldMap();
     slider1.addEventListener("input", triggerWorldMap);
     slider2.addEventListener("input", triggerWorldMap);
-    document.getElementById("timeseries").on("plotly_legendclick", triggerWorldMap);
+    document.getElementById("timeseries").on("plotly_restyle", triggerWorldMap);
 
     // heatmap
     async function triggerHeatmap(event) {
