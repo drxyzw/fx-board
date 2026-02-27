@@ -83,12 +83,12 @@ h2{
 }
 .slider-track {
     width: 100%;
-    height: 5px;
-    background-color: #d5d5d5;
+    height: 6px;
+    background-color: #1e293b;
     position: absolute;
     margin: auto;
     top: 0; bottom: 0;
-    border-radius: 5px;
+    border-radius: 2px;
 }
 input[type="range"] {
     -webkit-appearance: none;
@@ -104,14 +104,24 @@ input[type="range"] {
 }
 input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
-    height: 1.5rem;
-    width: 1.5rem;
-    background-color: #1a73e8;
+    height: 2rem;
+    width: 0.8rem;
+    background-color: #3a86ff;
     cursor: pointer;
-    border-radius: 50%;
+    border-radius: 0px;
     pointer-events: auto;
     border: 2px solid white;
-    box-shadow: 0 0 2px rgba(0,0,0,0,3);
+    box-shadow: 0 0 5px rgba(0,0,0,0,5);
+}
+/* Firefox support */
+input[type="range"]::-moz-range-thumb {
+    height: 2rem;
+    width: 0.8rem;
+    background-color: #3a86ff;
+    cursor: pointer;
+    border-radius: 0px;
+    border: 2px solid white;
+    box-shadow: 0 0 5px rgba(0,0,0,0,5);
 }
 
 .chart-card {

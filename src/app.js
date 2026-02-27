@@ -275,6 +275,21 @@ document.addEventListener("DOMContentLoaded", async() => {
             result[partner] = endVal - startVal;
         }
         plotMap(result);
+
+        // track highlight
+        const track = document.querySelector(".slider-track");
+        const total = slider1.max;
+        const startPct = (startIdx / total) * 100;
+        const endPct = (endIdx / total) * 100;
+        // paint dim/active color
+        track.style.background = `linear-gradient(to right,
+            #1e293b 0%,
+            #1e293b ${startPct}%,
+            #3a86ff ${startPct}%,
+            #3a86ff ${endPct}%,
+            #1e293b ${endPct}%,
+            #1e293b 100%
+            )`;
     };
 
     triggerWorldMap();
