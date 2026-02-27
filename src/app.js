@@ -134,8 +134,7 @@ function plotHeatmap(reporter, values) {
     const weight = partners.map(p => values[p]["weight"]);
     const contrib = partners.map(p => values[p]["contribution"]);
     const group = Array(partners.length).fill("");
-    // partners.map(() => "");
-    // const group = partners.map(() => reporter + "NEER impact from partner currencies");
+    const maxAbsContrib = Math.max(Math.abs(Math.max(contrib)), Math.abs(Math.min(contrib)));
 
     const data = [{
         type: "treemap",
@@ -159,9 +158,9 @@ function plotHeatmap(reporter, values) {
                 [0.5, "#f0f0f0"],
                 [1.0, "#006400"]
             ],
-            cmin: -1.0,
+            cmin: -maxAbsContrib,
             cmax: 1.0,
-            cmid: 0.0,
+            cmid: maxAbsContrib,
             line: {width: 1}
         },
         textinfo: "label",
@@ -192,14 +191,18 @@ async function plotMap(values) {
         const res = await fetch(`/data/detail/CCY_COUNTRY.json`);
         ccy_country_map = await res.json();
     }
-    const partners = Object.keys(values);
-    const country_code = partners.flatMap(p => ccy_country_map[p]);
+    const reporters = Object.keys(values);
+    const country_code = reporters.flatMap(p => ccy_country_map[p]);
     const z = Object.entries(values).flatMap(([ccy, val]) => {
         const countries = ccy_country_map[ccy] ?? [];
         const countryList = Array.isArray(countries) ? countries : [countries];
         return countryList.map(() => val);
     });
-    const cmax = Math.max(Math.abs(Math.max(...z)), Math.abs(Math.min(...z)));
+    const country2GroupArray = Object.entries(ccy_country_map).filter(([key, value]) => Array.isArray(value))
+        .flatMap(([key, values]) => values.map(value=>[value, key]));
+    const country2Group = Object.fromEntries(country2GroupArray);
+    const country_code_tooltip = country_code.map((c) => country2Group[c] ?? c)
+    const zmax = Math.max(Math.abs(Math.max(...z)), Math.abs(Math.min(...z)));
     const traces = [{
         type: "choropleth",
         locations: country_code,
@@ -210,10 +213,15 @@ async function plotMap(values) {
             [0.5, "#f0f0f0"],
             [1, "#006400"]
         ],
-        zmin: -cmax,
-        zmax: cmax,
+        zmin: -zmax,
+        zmax: zmax,
         zmid: 0.0,
         cauto: false,
+        customdata: country_code_tooltip,
+        hovertemplate:
+            '<b>%{customdata}</b><br>' +
+            '%{z:.2f}%<br>' +
+            '<extra></extra>',
         // Colorbar at bottom
         colorbar: {
             orientation: "h",
@@ -273,19 +281,19 @@ document.addEventListener("DOMContentLoaded", async() => {
         endInput.value = dates[endIdx];
         // get visible ccies in time series chart
         const ts_chart = document.getElementById("timeseries")
-        let visiblePartners = null;
+        let visibleReporters = null;
         if(ts_chart) {
-            visiblePartners = ts_chart.data.filter(t => t.visible == true).map(t => t.name);
+            visibleReporters = ts_chart.data.filter(t => t.visible == true).map(t => t.name);
         }
         if(startIdx == -1 || endIdx == -1) return;
         const result = {};
-        for (const partner in timeseriesData) {
-            if (partner === "Date" || !(visiblePartners.includes(partner))) continue;
-            const arr = timeseriesData[partner];
+        for (const reporter in timeseriesData) {
+            if (reporter === "Date" || !(visibleReporters.includes(reporter))) continue;
+            const arr = timeseriesData[reporter];
             const endVal = arr[endIdx];
             const startVal = arr[startIdx];
             if(startVal && startVal != 0.0)
-                result[partner] = Math.log(endVal / startVal);
+                result[reporter] = Math.log(endVal / startVal);
         }
         plotMap(result);
 
