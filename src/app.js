@@ -181,18 +181,10 @@ function plotHeatmap(reporter, values) {
         // margin: {t:10, l:0, r:0, b:0},
         // clickmode: "none",
     };
-    Plotly.react("heatmap", data, layout);
-    // Plotly.newPlot("heatmap", data, layout);
-    // Plotly.newPlot("heatmap", [{
-    //     z: z,
-    //     x: partners,
-    //     y: [reporter],
-    //     type: "heatmap",
-    //     colorscale: "RdBu",
-    //     reversescale: true,
-    // }], {
-    //     title: `Return vs ${reporter}`
-    // });
+    const config = {
+        responsive: true,
+    };
+    Plotly.react("heatmap", data, layout, config);
 }
 
 async function plotMap(values) {
@@ -207,25 +199,39 @@ async function plotMap(values) {
         const countryList = Array.isArray(countries) ? countries : [countries];
         return countryList.map(() => val);
     });
-    const cmax = Math.max([Math.max(...z), Math.min(...z)]);
-    Plotly.newPlot("map", [{
+    const cmax = Math.max(Math.abs(Math.max(...z)), Math.abs(Math.min(...z)));
+    const traces = [{
         type: "choropleth",
         locations: country_code,
         z: z,
         locationmode: "ISO-3",
         colorscale: [
-            [0.0, "#006400"],
+            [0, "#8b0000"],
             [0.5, "#f0f0f0"],
-            [1.0, "#8b0000"]
+            [1, "#006400"]
         ],
-        cmin: -cmax,
-        cmax: cmax,
-        cmid: 0.0,
-        reversescale: true,
-    }], {
+        zmin: -cmax,
+        zmax: cmax,
+        zmid: 0.0,
+        cauto: false,
+        // Colorbar at bottom
+        colorbar: {
+            orientation: "h",
+            x: 0.5,
+            xanchor: "center",
+            y: -0.15,
+            yanchor: "top",
+            tickformat: ".1%",
+        }
+    }];
+    const layout = {
         geo: { projection: {type: "natural earth"}},
         title: "Return of each NEER",
-    });
+   };
+    const config = {
+        responsive: true,
+    };
+    Plotly.newPlot("map", traces, layout, config);
 }
 function shiftPastDate(yyyymmdd) {
     const yearStr = yyyymmdd.substring(0, 4);
