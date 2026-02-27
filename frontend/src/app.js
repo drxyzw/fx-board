@@ -220,7 +220,7 @@ async function plotMap(values) {
         customdata: country_code_tooltip,
         hovertemplate:
             '<b>%{customdata}</b><br>' +
-            '%{z:.2f}%<br>' +
+            '%{z:.2%}<br>' +
             '<extra></extra>',
         // Colorbar at bottom
         colorbar: {
@@ -234,7 +234,7 @@ async function plotMap(values) {
     }];
     const layout = {
         geo: { projection: {type: "natural earth"}},
-        title: "Return of each NEER",
+        title: "NEER OF REPORTER CURRENCY",
    };
     const config = {
         responsive: true,
