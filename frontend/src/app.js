@@ -264,21 +264,28 @@ document.addEventListener("DOMContentLoaded", async() => {
 
     // world map
     const triggerWorldMap = (event) => {
+        // obtain time range
         const val1 = parseInt(slider1.value);
         const val2 = parseInt(slider2.value);
         const startIdx = Math.min(val1, val2);
         const endIdx = Math.max(val1, val2);
         startInput.value = dates[startIdx];
         endInput.value = dates[endIdx];
-
+        // get visible ccies in time series chart
+        const ts_chart = document.getElementById("timeseries")
+        let visiblePartners = null;
+        if(ts_chart) {
+            visiblePartners = ts_chart.data.filter(t => t.visible == true).map(t => t.name);
+        }
         if(startIdx == -1 || endIdx == -1) return;
         const result = {};
         for (const partner in timeseriesData) {
-            if (partner === "Date") continue;
+            if (partner === "Date" || !(visiblePartners.includes(partner))) continue;
             const arr = timeseriesData[partner];
             const endVal = arr[endIdx];
             const startVal = arr[startIdx];
-            result[partner] = endVal - startVal;
+            if(startVal && startVal != 0.0)
+                result[partner] = Math.log(endVal / startVal);
         }
         plotMap(result);
 
@@ -301,6 +308,7 @@ document.addEventListener("DOMContentLoaded", async() => {
     triggerWorldMap();
     slider1.addEventListener("input", triggerWorldMap);
     slider2.addEventListener("input", triggerWorldMap);
+    document.getElementById("timeseries").on("plotly_legendclick", triggerWorldMap);
 
     // heatmap
     async function triggerHeatmap(event) {
@@ -324,4 +332,6 @@ document.addEventListener("DOMContentLoaded", async() => {
     document.getElementById("timeseries").on("plotly_hover", triggerHeatmap);
     slider1.addEventListener("input", triggerHeatmap);
     slider2.addEventListener("input", triggerHeatmap);
+
+
 });
