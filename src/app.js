@@ -43,11 +43,6 @@ function alignSliderWithChart() {
 
 function plotTimeSeries() {
     const currencies = Object.keys(timeseriesData).filter(k => k != "Date");
-    // // 2026 Terminal Palette: High contrast, low repetition
-    // const colorPalette = [
-    //     '#3a86ff', '#06d6a0', '#ff006e', '#ffbe0b', '#fb5607', '#9747ff', 
-    //     '#00f5ff', '#ff0000', '#70e000', '#ff9100', '#00b4d8', '#f15bb5'
-    // ];
     const initial_ccies = CONFIG.initial_currencies;
 
     const traces = currencies.map((c, i) => ({
@@ -59,7 +54,6 @@ function plotTimeSeries() {
         line: {
             width: 1.2,
             color: `hsl(${(i * 137.5) % 360}, 70%, 60%)`, // HSL color scheme
-            // color: colorPalette[i % colorPalette.length],
         },
     }));
 
@@ -67,7 +61,10 @@ function plotTimeSeries() {
         template: "plotly_dark",
         paper_bgcolor: "rgba(0,0,0,0)",
         plot_bgcolor: "rgba(0,0,0,0)",
-        title: "NEER trend",
+        title: {
+            text: "NEER trend",
+            font: { color: "#3a86ff", size: 16 },
+        },
         hovermode: "closest",
         margin: { l: 50, r: 180, t: 40, b: 40 },
         xaxis: {
@@ -135,11 +132,14 @@ function plotHeatmap(reporter, values) {
     const contrib = partners.map(p => values[p]["contribution"]);
     const group = Array(partners.length).fill("");
     const maxAbsContrib = Math.max(Math.abs(Math.max(contrib)), Math.abs(Math.min(contrib)));
-
+    const hovertemplates = partners.map((v, i) => {
+        return i == 0 ? "" :
+            '<b>%{label}</b><br>' +
+            'Weight: %{value:.2f}%<br>' +
+            'Contribution: %{color:.2f}%<extra></extra>'
+    });
     const data = [{
         type: "treemap",
-        // paper_bgcolor: "rgba(0,0,0,0)",
-        // plot_bgcolor: "rgba(0,0,0,0)",
         labels: partners,
         parents: group,
         branchvalues: "total",
@@ -148,9 +148,7 @@ function plotHeatmap(reporter, values) {
             visible: true,
             color: "rgba(0,0,0,0)",
         },
-        // tiling: {packing: "squarify"},
         values: weight,
-        // domain: { x: [0, 1], y: [0, 1] },
         marker: {
             colors: contrib,
             colorscale: [
@@ -167,18 +165,17 @@ function plotHeatmap(reporter, values) {
         // hoverlabel: {
         //     namelength: 0,
         // },
-        hovertemplate:
-            '<b>%{label}</b><br>' +
-            'Weight: %{value:.2f}%<br>' +
-            'Contribution: %{color:.2f}%<extra></extra>',
-        // hoverinfo: "label+value",
-        // textinfo: "label",
-        // tiling: { pad: 2 }
-    }]
+        hovertemplate: hovertemplates,
+    }];
     const layout = {
-        margin: {t:0, l:0, r:0, b:0},
-        // margin: {t:10, l:0, r:0, b:0},
-        // clickmode: "none",
+        template: "plotly_dark",
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        margin: {t: 50, l: 10, r: 10, b:10 },
+        title: {
+            text: `Composition of ${reporter} NEER change vs partner`,
+            font: { color: "#3a86ff", size: 16 },
+        },
     };
     const config = {
         responsive: true,

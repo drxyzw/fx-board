@@ -22,7 +22,7 @@ h2{
     margin: 0 auto;
 }
 
-#timeseries, #map, #heapmap {
+#timeseries, #map, #heatmap {
     background: #0f172a;
     border: 1px solid #1e293b;
     border-radius: 12px;
