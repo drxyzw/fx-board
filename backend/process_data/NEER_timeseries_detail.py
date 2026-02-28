@@ -63,7 +63,7 @@ if output_json:
             df_chart_rp = df_chart_rp.reindex(dates)
             df_chart_rp = df_chart_rp.ffill().fillna(0.)
             partner_dict[partner] = {
-                        "weight": df_chart_rp["weight"].to_list(),
+                        "cum_weight": df_chart_rp["weight"].cumsum().to_list(),
                         "return": df_chart_rp["return"].to_list(),
                         "contribution": df_chart_rp["contribution"].to_list(),
                     }
