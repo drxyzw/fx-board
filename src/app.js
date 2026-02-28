@@ -2,6 +2,7 @@ import { CONFIG } from "./config"
 
 const reporterCache = {};
 let timeseriesData;
+let ts_scale;
 let dates;
 let ccy_country_map;
 let heatmap_reporter;
@@ -44,10 +45,12 @@ function alignSliderWithChart() {
 function plotTimeSeries() {
     const currencies = Object.keys(timeseriesData).filter(k => k != "Date");
     const initial_ccies = CONFIG.initial_currencies;
+    if(!ts_scale) ts_scale = Array(currencies.length).fill(1.0);
 
     const traces = currencies.map((c, i) => ({
         x: dates,
-        y: timeseriesData[c],
+        y: timeseriesData[c].map((v) => v * ts_scale[i]),
+        // y: timeseriesData[c],
         name: c,
         mode: "lines",
         visible: initial_ccies.includes(c) ? true : "legendonly",
@@ -120,7 +123,7 @@ function computeRangeValues(data, startIdx, endIdx) {
             const startVal = startIdx > 0 ? arr[key][startIdx] : 0;
             result[partner][key] = endVal - startVal
         }
-        result[partner]["weight"] /= endIdx - startIdx
+        result[partner]["weight"] = result[partner]["cum_weight"] / (endIdx - startIdx)
     }
     return result;
 }
@@ -135,8 +138,8 @@ function plotHeatmap(reporter, values) {
     const hovertemplates = partners.map((v, i) => {
         return i == 0 ? "" :
             '<b>%{label}</b><br>' +
-            'Weight: %{value:.2f}%<br>' +
-            'Contribution: %{color:.2f}%<extra></extra>'
+            'Weight: %{value:.2%}<br>' +
+            'Contribution: %{color:.2%}<extra></extra>'
     });
     const data = [{
         type: "treemap",
@@ -353,5 +356,21 @@ document.addEventListener("DOMContentLoaded", async() => {
     slider1.addEventListener("input", triggerHeatmap);
     slider2.addEventListener("input", triggerHeatmap);
 
+    function changeTimeseriesRange() {
+        // obtain time range
+        const val1 = parseInt(slider1.value);
+        const val2 = parseInt(slider2.value);
+        const startIdx = Math.min(val1, val2);
+        const endIdx = Math.max(val1, val2);
+        const startDateTS = dates[startIdx];
+        const endDateTS = dates[endIdx];
+        const ts = document.getElementById("timeseries");
+        const update = {
+            "xaxis.range": [startDateTS, endDateTS]
+        };
+        Plotly.relayout(ts, update);
+    }
+    slider1.addEventListener("input", changeTimeseriesRange);
+    slider2.addEventListener("input", changeTimeseriesRange);
 
 });
