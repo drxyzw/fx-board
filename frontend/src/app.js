@@ -226,15 +226,30 @@ async function plotMap(values) {
         colorbar: {
             orientation: "h",
             x: 0.5,
-            xanchor: "center",
             y: -0.15,
+            xanchor: "center",
             yanchor: "top",
             tickformat: ".1%",
+            tickfont: { color: "#94a3b8" },
         }
     }];
     const layout = {
-        geo: { projection: {type: "natural earth"}},
-        title: "NEER OF REPORTER CURRENCY",
+        template: "plotly_dark",
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        geo: {
+            projection: {type: "natural earth"},
+            bgcolor: "rgba(0,0,0,0)",
+            lakecolor: "#0b0e14",
+            showlake: true,
+            landcolor: "#1e293b",
+            subunitcolor: "#334155",
+        },
+        title: {
+            text: "NEER OF REPORTER CURRENCY",
+            font: { color: "#3a86ff", size: 16 },
+        },
+        margin: {t: 50, l: 10, r: 10, b:10 },
    };
     const config = {
         responsive: true,
