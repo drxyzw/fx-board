@@ -40,7 +40,7 @@ for reporter in df_imputed["reporter"].unique():
         df_ts = df_reporter[df_reporter["partner"] == partner].sort_values(by = "Date")
         df_ts["reporter"] = df_ts["reporter"].astype("category")
         df_ts["partner"] = df_ts["partner"].astype("category")
-        df_ts["weight"] = df_ts["weight"].cumsum().astype("float32")
+        df_ts["weight"] = df_ts["weight"].astype("float32")
         df_ts["return"] = df_ts["return"].cumsum().astype("float32")
         df_ts["contribution"] = df_ts["contribution"].cumsum().astype("float32")
         df_tss.append(df_ts)
