@@ -18,30 +18,6 @@ async function loadTimeSeries() {
     dates = timeseriesData.Date;
 }
 
-function alignSliderWithChart() {
-    const gd = document.getElementById('timeseries');
-    const wrapper = document.querySelector('.slider-align-wrapper');
-    
-    // 1. Get the internal plotting rectangle (the actual grid area)
-    const plotArea = gd.querySelector('.nse-grid') || gd.querySelector('.xy') || gd.querySelector('.gridlayer');
-    
-    if (!gd || !plotArea || !wrapper) return;
-
-    const plotRect = plotArea.getBoundingClientRect();
-    const wrapperRect = wrapper.parentElement.getBoundingClientRect();
-
-    // 2. Calculate offsets relative to the common parent (the container)
-    // We want the slider track to start EXACTLY where the grid starts
-    const leftPadding = plotRect.left - wrapperRect.left;
-    
-    // And end EXACTLY where the grid ends
-    const rightPadding = wrapperRect.right - plotRect.right;
-
-    // 3. Apply to CSS variables
-    wrapper.style.setProperty('--chart-margin-left', `${leftPadding}px`);
-    wrapper.style.setProperty('--chart-margin-right', `${rightPadding}px`);
-}
-
 function plotTimeSeries() {
     const currencies = Object.keys(timeseriesData).filter(k => k != "Date");
     const initial_ccies = CONFIG.initial_currencies;
@@ -50,7 +26,6 @@ function plotTimeSeries() {
     const traces = currencies.map((c, i) => ({
         x: dates,
         y: timeseriesData[c].map((v) => v * ts_scale[c]),
-        // y: timeseriesData[c],
         name: c,
         mode: "lines",
         visible: initial_ccies.includes(c) ? true : "legendonly",
@@ -76,9 +51,9 @@ function plotTimeSeries() {
             tickfont: { size: 11, color: "#94a3b8" },
             hoverformat: "%d %b %Y",
             automargin: false,
-            // rangeslider: {
-            //     visible: true,
-            // },
+            rangeslider: {
+                visible: true,
+            },
         },
         yaxis: {
             side: "right",
@@ -86,8 +61,8 @@ function plotTimeSeries() {
             tickfont: { size: 11, color: "#94a3b8" },
             tickpadding: 15,
             automargin: false,
-            // autorange: true,
-            // fixedrange: false,
+            autorange: true,
+            fixedrange: false,
         },
         legend: {
             orientation: "v",
@@ -100,9 +75,10 @@ function plotTimeSeries() {
     const config = {
         responsive: true,
     };
-    Plotly.newPlot("timeseries", traces, layout, config).then(() => {
-        alignSliderWithChart();
-    });
+    Plotly.newPlot("timeseries", traces, layout, config);
+    // Plotly.newPlot("timeseries", traces, layout, config).then(() => {
+    //     alignSliderWithChart();
+    // });
 }
 
 async function loadReporter(reporter) {
@@ -170,9 +146,6 @@ function plotHeatmap(reporter, values) {
             line: {width: 1}
         },
         textinfo: "label",
-        // hoverlabel: {
-        //     namelength: 0,
-        // },
         hovertemplate: hovertemplates,
     }];
     const layout = {
@@ -272,39 +245,18 @@ document.addEventListener("DOMContentLoaded", async() => {
     // line chart
     plotTimeSeries();
     
-    // date range slider
-    const slider1 = document.getElementById("slider-1");
-    const slider2 = document.getElementById("slider-2");
-    const maxIdx = dates.length - 1;
-    slider1.min = 0;
-    slider1.max = maxIdx;
-    slider1.value = 0;
-    slider2.min = 0;
-    slider2.max = maxIdx;
-    slider2.value = maxIdx;
-    // default date
-    // const lastDate = timeseriesData["Date"][timeseriesData["Date"].length-1];
-    // const pastDate = shiftPastDate(lastDate);
+    // world map
+    const ts_chart = document.getElementById("timeseries");
     const startInput = document.getElementById("startDate");
     const endInput = document.getElementById("endDate");
-    // if (!startInput.value) startInput.value = pastDate;
-    // if (!endInput.value) endInput.value = lastDate;
-
-    // world map
-    const ts_chart = document.getElementById("timeseries")
     const triggerWorldMap = (event) => {
         // obtain time range
-        const val1 = parseInt(slider1.value);
-        const val2 = parseInt(slider2.value);
-        const startIdx = Math.min(val1, val2);
-        const endIdx = Math.max(val1, val2);
-        startInput.value = dates[startIdx];
-        endInput.value = dates[endIdx];
+        const startDate = ts_chart._fullLayout.xaxis.range[0];
+        const endDate = ts_chart._fullLayout.xaxis.range[1];
+        const startIdx = dates.indexOf(startDate);
+        const endIdx = dates.indexOf(endDate);
         // get visible ccies in time series chart
-        let visibleReporters = null;
-        if(ts_chart) {
-            visibleReporters = ts_chart.data.filter(t => t.visible == true).map(t => t.name);
-        }
+        let visibleReporters = ts_chart.data.filter(t => t.visible == true).map(t => t.name);
         if(startIdx == -1 || endIdx == -1) return;
         const result = {};
         for (const reporter in timeseriesData) {
@@ -316,39 +268,23 @@ document.addEventListener("DOMContentLoaded", async() => {
                 result[reporter] = Math.log(endVal / startVal);
         }
         plotMap(result);
-
-        // track highlight
-        const track = document.querySelector(".slider-track");
-        const total = slider1.max;
-        const startPct = (startIdx / total) * 100;
-        const endPct = (endIdx / total) * 100;
-        // paint dim/active color
-        track.style.background = `linear-gradient(to right,
-            #1e293b 0%,
-            #1e293b ${startPct}%,
-            #3a86ff ${startPct}%,
-            #3a86ff ${endPct}%,
-            #1e293b ${endPct}%,
-            #1e293b 100%
-            )`;
     };
 
     triggerWorldMap();
-    ts_chart.on("plotly_restyle", triggerWorldMap);
 
     // heatmap
     async function triggerHeatmap(event) {
         const eventForType = event.event ?? event;
-        const start = document.getElementById("startDate").value;
-        const end = document.getElementById("endDate").value;
-        if(!start || !end) return;
+        const startDate = ts_chart._fullLayout.xaxis.range[0].substring(0, 10);
+        const endDate = ts_chart._fullLayout.xaxis.range[1].substring(0, 10);
+        if(!startDate || !endDate) return;
         if(eventForType.type == "mousemove") { // hovering a line chart
             heatmap_reporter = event.points[0].data.name;
         }
         if(heatmap_reporter) {
             const reporterData = await loadReporter(heatmap_reporter);
-            const startIdx = getDateIndex(start, reporterData.Date);
-            const endIdx = getDateIndex(end, reporterData.Date);
+            const startIdx = getDateIndex(startDate, reporterData.Date);
+            const endIdx = getDateIndex(endDate, reporterData.Date);
             if(startIdx == -1 || endIdx == -1) return;
 
             const values = endIdx > startIdx ? computeRangeValues(reporterData, startIdx, endIdx) : null;
@@ -356,76 +292,75 @@ document.addEventListener("DOMContentLoaded", async() => {
         }
     }
     ts_chart.on("plotly_hover", triggerHeatmap);
-    slider1.addEventListener("input", triggerHeatmap);
-    slider2.addEventListener("input", triggerHeatmap);
+    ts_chart.on("plotly_relayout", triggerHeatmap);
+    // slider1.addEventListener("input", triggerHeatmap);
+    // slider2.addEventListener("input", triggerHeatmap);
     startInput.addEventListener("input", triggerHeatmap);
     endInput.addEventListener("input", triggerHeatmap);
 
     function changeTimeseriesRange() {
-        // obtain time range
-        const val1 = parseInt(slider1.value);
-        const val2 = parseInt(slider2.value);
-        const startIdx = Math.min(val1, val2);
-        const endIdx = Math.max(val1, val2);
-        const startDateTS = dates[startIdx];
-        const endDateTS = dates[endIdx];
-        const update = {
-            "xaxis.range": [startDateTS, endDateTS],
-            "yaxis.autorange": true,
-            "yaxis.rangemode": "normal", // This prevents extra padding logic
-            "yaxis.autorangeoptions.clip": true,
-            "yaxis.fixedrange": false,
-            // yaxis: {
-            //     range: [startDateTS, endDateTS],
-            //     autorange: true,
-            //     autorangeoptions: {
-            //         clip: true,
-            //     },
-            //     // fixedrange: false,x
-            // },
-        };
-        Plotly.relayout(ts_chart, update);
+        // // obtain time range
+        // const val1 = parseInt(slider1.value);
+        // const val2 = parseInt(slider2.value);
+        // const startIdx = Math.min(val1, val2);
+        // const endIdx = Math.max(val1, val2);
+        // const startDateTS = dates[startIdx];
+        // const endDateTS = dates[endIdx];
+        // const update = {
+        //     "xaxis.range": [startDateTS, endDateTS],
+        //     // "yaxis.autorange": true,
+        //     // "yaxis.rangemode": "normal", // This prevents extra padding logic
+        //     // "yaxis.autorangeoptions.clip": true,
+        //     // "yaxis.fixedrange": false,
+        //     // yaxis: {
+        //     //     range: [startDateTS, endDateTS],
+        //     //     autorange: true,
+        //     //     autorangeoptions: {
+        //     //         clip: true,
+        //     //     },
+        //     //     // fixedrange: false,x
+        //     // },
+        // };
+        // Plotly.relayout(ts_chart, update);
+        Plotly.relayout(ts_scale, {"xaxis.range": [startInput.value, endInput.value]});
     }
-    slider1.addEventListener("input", changeTimeseriesRange);
-    slider2.addEventListener("input", changeTimeseriesRange);
+    // slider1.addEventListener("input", changeTimeseriesRange);
+    // slider2.addEventListener("input", changeTimeseriesRange);
     startInput.addEventListener("input", changeTimeseriesRange);
     endInput.addEventListener("input", changeTimeseriesRange);
 
-    function changeTimeseriesScale() {
+    function changeTimeseriesScale(eventData) {
+        if(!eventData["xaxis.range"] && !eventData?.srcElement?.name && (eventData?.srcElement?.name != "scaleChoice")) return;
+        // obtain time range
+        const startDate = ts_chart._fullLayout.xaxis.range[0].substring(0, 10);
+        const endDate = ts_chart._fullLayout.xaxis.range[1].substring(0, 10);
+        const startIdx = dates.indexOf(startDate);
+        const endIdx = dates.indexOf(endDate);
         if(document.getElementById("scaleStartDate").checked) {
-            // obtain time range
-            const val1 = parseInt(slider1.value);
-            const val2 = parseInt(slider2.value);
-            const startIdx = Math.min(val1, val2);
             const traceIndices= [...ts_chart.data.keys()];
             const newTimeseiesData = ts_chart.data.map((v) => {
                 const ccy = v.name;
                 ts_scale[ccy] = 100 / timeseriesData[ccy][startIdx];
-                return timeseriesData[ccy].map((r) => r * ts_scale[ccy]);
+                return timeseriesData[ccy].map((r, i) =>
+                        (startIdx <= i && i <= endIdx) ?
+                        (r * ts_scale[ccy]) : null
+                );
             });
             Plotly.restyle(ts_chart, {y: newTimeseiesData}, traceIndices);
-            Plotly.relayout(ts_chart, {
-                "yaxis.autorange": true,
-                "yaxis.rangemode": "normal", // This prevents extra padding logic
-            });
         } else {
             const traceIndices= [...ts_chart.data.keys()];
             const newTimeseiesData = ts_chart.data.map((v) => {
                 const ccy = v.name;
                 ts_scale[ccy] = 1.0;
-                return timeseriesData[ccy].map((r) => r * ts_scale[ccy]);
+                return timeseriesData[ccy].map((r, i) =>
+                        (startIdx <= i && i <= endIdx) ?
+                        r : null
+                );
             });
             Plotly.restyle(ts_chart, {y: newTimeseiesData}, traceIndices);
-            Plotly.relayout(ts_chart, {
-                "yaxis.autorange": true,
-                "yaxis.rangemode": "normal", // This prevents extra padding logic
-            });
         }
     }
-    slider1.addEventListener("input", changeTimeseriesScale);
-    slider2.addEventListener("input", changeTimeseriesScale);
-    startInput.addEventListener("input", changeTimeseriesScale);
-    endInput.addEventListener("input", changeTimeseriesScale);
+    ts_chart.on("plotly_relayout", changeTimeseriesScale);
     document.getElementById("scaleDefault").addEventListener("change", changeTimeseriesScale);
     document.getElementById("scaleStartDate").addEventListener("change", changeTimeseriesScale);
 });
