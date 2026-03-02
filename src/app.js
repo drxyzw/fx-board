@@ -33,6 +33,9 @@ function plotTimeSeries() {
             width: 1.2,
             color: `hsl(${(i * 137.5) % 360}, 70%, 60%)`, // HSL color scheme
         },
+        hovertemplate: '<b>%{fullData.name}</b><br>' +
+                        '%{x}<br>' +
+                        '%{y}<br><extra></extra>',
     }));
 
     const layout = {
@@ -79,10 +82,6 @@ function plotTimeSeries() {
     const chart = document.getElementById("timeseries")
     document.getElementById("startDate").value = chart._fullLayout.xaxis.range[0].substring(0, 10);
     document.getElementById("endDate").value = chart._fullLayout.xaxis.range[1].substring(0, 10);
-
-    // Plotly.newPlot("timeseries", traces, layout, config).then(() => {
-    //     alignSliderWithChart();
-    // });
 }
 
 async function loadReporter(reporter) {
@@ -118,13 +117,24 @@ function plotHeatmap(reporter, values) {
     const ret = partners.map(p => values[p]["return"]);
     const weight = partners.map(p => values[p]["weight"]);
     const contrib = partners.map(p => values[p]["contribution"]);
-    const group = Array(partners.length).fill("");
+    const customdata = partners.map((p, i) => [ret[i], contrib[i]]);
+    const group = Array(partners.length).fill(null);
     const maxAbsContrib = Math.max(Math.abs(Math.max(contrib)), Math.abs(Math.min(contrib)));
-    const hovertemplates = partners.map((v, i) => {
-        return i == 0 ? "" :
+    const texttemplates = partners.map((v, i) => {
+        return i == 0 ? null :
+            // '<span style="font-size: 40px;">' +
             '<b>%{label}</b><br>' +
+            'Return: %{customdata[0]:.0%}<br>' +
+            'Weight: %{value:.0%}<br>' +
+            'Contribution: %{customdata[1]:.0%}'
+            // 'Contribution: %{customdata[1]:.0%}</span>'
+    });
+    const hovertemplates = partners.map((v, i) => {
+        return i == 0 ? null :
+            '<b>%{label}</b><br>' +
+            'Return: %{customdata[0]:.2%}<br>' +
             'Weight: %{value:.2%}<br>' +
-            'Contribution: %{color:.2%}<extra></extra>'
+            'Contribution: %{customdata[1]:.2%}<extra></extra>'
     });
     const data = [{
         type: "treemap",
@@ -137,6 +147,7 @@ function plotHeatmap(reporter, values) {
             color: "rgba(0,0,0,0)",
         },
         values: weight,
+        customdata: customdata,
         marker: {
             colors: contrib,
             colorscale: [
@@ -149,7 +160,14 @@ function plotHeatmap(reporter, values) {
             cmid: maxAbsContrib,
             line: {width: 1}
         },
-        textinfo: "label",
+        // textinfo: "label",
+        texttemplate: texttemplates,
+        textfont: {
+            size: 1,
+        },
+        insidetextfont: {
+            size: 40,
+        },
         hovertemplate: hovertemplates,
     }];
     const layout = {
