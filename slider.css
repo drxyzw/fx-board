@@ -46,6 +46,37 @@ h2{
     margin-top: 10px;
 }
 
+.controls-row {
+    display: flex;
+    align-items: center; /* vertical center */
+    /* justify-content: space-between; */
+    gap: 20px;
+    background: #1e293b;
+    padding: 10px 15px;
+    border-radius: 8px;
+    color: #94a3b8;
+}
+
+.radio-group, .date-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.radio-group input[type="radio"] {
+    accent-color: #3a86ff;
+    cursor: pointer;
+}
+
+.dark-input {
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: white;
+    padding: 5px;
+    border-radius: 4px;
+    outline: none;
+}
+
 .date-display {
     display: flex;
     justify-content: center;

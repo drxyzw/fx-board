@@ -26,9 +26,19 @@
                         <input type="range" id="slider-2">
                     </div>
                 </div>
-                <div class="date-display">
-                    <label>Start: <input type="date" id="startDate"></label>
-                    <label>End: <input type="date" id="endDate"></label>
+                <div class="controls-row">
+                    <div class="date-display" style="height: 40px; align-items: center;">
+                        <label>Start: <input type="date" id="startDate"></label>
+                        <label>End: <input type="date" id="endDate"></label>
+                    </div>
+                    <div class="date-display" style="height: 40px; align-items: center;">
+                        <label><input type="radio" name="scaleChoice" id="scaleDefault" value="default" checked><label id="NEER_BASE_YEAR"></label></label>
+                        <label><input type="radio" name="scaleChoice" id="scaleStartDate" value="startDate">Start Date</label>
+                        <script src="./src/configByBackend.js"></script>
+                        <script>
+                            document.getElementById("NEER_BASE_YEAR").innerHTML = `Default (100 = ${NEER_BASE_YEAR} LEVEL)`
+                        </script>
+                    </div>
                 </div>
             </div>
             <div id="map"></div>
