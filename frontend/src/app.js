@@ -45,11 +45,11 @@ function alignSliderWithChart() {
 function plotTimeSeries() {
     const currencies = Object.keys(timeseriesData).filter(k => k != "Date");
     const initial_ccies = CONFIG.initial_currencies;
-    if(!ts_scale) ts_scale = Array(currencies.length).fill(1.0);
+    if(!ts_scale) ts_scale = Object.fromEntries(currencies.map((c) => [c, 1.0]));
 
     const traces = currencies.map((c, i) => ({
         x: dates,
-        y: timeseriesData[c].map((v) => v * ts_scale[i]),
+        y: timeseriesData[c].map((v) => v * ts_scale[c]),
         // y: timeseriesData[c],
         name: c,
         mode: "lines",
@@ -76,6 +76,9 @@ function plotTimeSeries() {
             tickfont: { size: 11, color: "#94a3b8" },
             hoverformat: "%d %b %Y",
             automargin: false,
+            // rangeslider: {
+            //     visible: true,
+            // },
         },
         yaxis: {
             side: "right",
@@ -83,6 +86,8 @@ function plotTimeSeries() {
             tickfont: { size: 11, color: "#94a3b8" },
             tickpadding: 15,
             automargin: false,
+            // autorange: true,
+            // fixedrange: false,
         },
         legend: {
             orientation: "v",
@@ -90,7 +95,7 @@ function plotTimeSeries() {
             y: 1,
             font: { size: 10, color: "#94a3b8" },
             bgcolor: "rgba(0,0,0,0)",
-        }
+        },
     };
     const config = {
         responsive: true,
@@ -286,6 +291,7 @@ document.addEventListener("DOMContentLoaded", async() => {
     // if (!endInput.value) endInput.value = lastDate;
 
     // world map
+    const ts_chart = document.getElementById("timeseries")
     const triggerWorldMap = (event) => {
         // obtain time range
         const val1 = parseInt(slider1.value);
@@ -295,7 +301,6 @@ document.addEventListener("DOMContentLoaded", async() => {
         startInput.value = dates[startIdx];
         endInput.value = dates[endIdx];
         // get visible ccies in time series chart
-        const ts_chart = document.getElementById("timeseries")
         let visibleReporters = null;
         if(ts_chart) {
             visibleReporters = ts_chart.data.filter(t => t.visible == true).map(t => t.name);
@@ -329,9 +334,7 @@ document.addEventListener("DOMContentLoaded", async() => {
     };
 
     triggerWorldMap();
-    slider1.addEventListener("input", triggerWorldMap);
-    slider2.addEventListener("input", triggerWorldMap);
-    document.getElementById("timeseries").on("plotly_restyle", triggerWorldMap);
+    ts_chart.on("plotly_restyle", triggerWorldMap);
 
     // heatmap
     async function triggerHeatmap(event) {
@@ -352,9 +355,11 @@ document.addEventListener("DOMContentLoaded", async() => {
             plotHeatmap(heatmap_reporter, values);
         }
     }
-    document.getElementById("timeseries").on("plotly_hover", triggerHeatmap);
+    ts_chart.on("plotly_hover", triggerHeatmap);
     slider1.addEventListener("input", triggerHeatmap);
     slider2.addEventListener("input", triggerHeatmap);
+    startInput.addEventListener("input", triggerHeatmap);
+    endInput.addEventListener("input", triggerHeatmap);
 
     function changeTimeseriesRange() {
         // obtain time range
@@ -364,13 +369,63 @@ document.addEventListener("DOMContentLoaded", async() => {
         const endIdx = Math.max(val1, val2);
         const startDateTS = dates[startIdx];
         const endDateTS = dates[endIdx];
-        const ts = document.getElementById("timeseries");
         const update = {
-            "xaxis.range": [startDateTS, endDateTS]
+            "xaxis.range": [startDateTS, endDateTS],
+            "yaxis.autorange": true,
+            "yaxis.rangemode": "normal", // This prevents extra padding logic
+            "yaxis.autorangeoptions.clip": true,
+            "yaxis.fixedrange": false,
+            // yaxis: {
+            //     range: [startDateTS, endDateTS],
+            //     autorange: true,
+            //     autorangeoptions: {
+            //         clip: true,
+            //     },
+            //     // fixedrange: false,x
+            // },
         };
-        Plotly.relayout(ts, update);
+        Plotly.relayout(ts_chart, update);
     }
     slider1.addEventListener("input", changeTimeseriesRange);
     slider2.addEventListener("input", changeTimeseriesRange);
+    startInput.addEventListener("input", changeTimeseriesRange);
+    endInput.addEventListener("input", changeTimeseriesRange);
 
+    function changeTimeseriesScale() {
+        if(document.getElementById("scaleStartDate").checked) {
+            // obtain time range
+            const val1 = parseInt(slider1.value);
+            const val2 = parseInt(slider2.value);
+            const startIdx = Math.min(val1, val2);
+            const traceIndices= [...ts_chart.data.keys()];
+            const newTimeseiesData = ts_chart.data.map((v) => {
+                const ccy = v.name;
+                ts_scale[ccy] = 100 / timeseriesData[ccy][startIdx];
+                return timeseriesData[ccy].map((r) => r * ts_scale[ccy]);
+            });
+            Plotly.restyle(ts_chart, {y: newTimeseiesData}, traceIndices);
+            Plotly.relayout(ts_chart, {
+                "yaxis.autorange": true,
+                "yaxis.rangemode": "normal", // This prevents extra padding logic
+            });
+        } else {
+            const traceIndices= [...ts_chart.data.keys()];
+            const newTimeseiesData = ts_chart.data.map((v) => {
+                const ccy = v.name;
+                ts_scale[ccy] = 1.0;
+                return timeseriesData[ccy].map((r) => r * ts_scale[ccy]);
+            });
+            Plotly.restyle(ts_chart, {y: newTimeseiesData}, traceIndices);
+            Plotly.relayout(ts_chart, {
+                "yaxis.autorange": true,
+                "yaxis.rangemode": "normal", // This prevents extra padding logic
+            });
+        }
+    }
+    slider1.addEventListener("input", changeTimeseriesScale);
+    slider2.addEventListener("input", changeTimeseriesScale);
+    startInput.addEventListener("input", changeTimeseriesScale);
+    endInput.addEventListener("input", changeTimeseriesScale);
+    document.getElementById("scaleDefault").addEventListener("change", changeTimeseriesScale);
+    document.getElementById("scaleStartDate").addEventListener("change", changeTimeseriesScale);
 });
