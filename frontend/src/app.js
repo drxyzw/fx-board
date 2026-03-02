@@ -76,6 +76,10 @@ function plotTimeSeries() {
         responsive: true,
     };
     Plotly.newPlot("timeseries", traces, layout, config);
+    const chart = document.getElementById("timeseries")
+    document.getElementById("startDate").value = chart._fullLayout.xaxis.range[0].substring(0, 10);
+    document.getElementById("endDate").value = chart._fullLayout.xaxis.range[1].substring(0, 10);
+
     // Plotly.newPlot("timeseries", traces, layout, config).then(() => {
     //     alignSliderWithChart();
     // });
@@ -234,12 +238,6 @@ async function plotMap(values) {
     };
     Plotly.newPlot("map", traces, layout, config);
 }
-function shiftPastDate(yyyymmdd) {
-    const yearStr = yyyymmdd.substring(0, 4);
-    const year = parseInt(yearStr, 10) - 1;
-    const mmdd = yyyymmdd.substring(4);
-    return year.toString() + mmdd;
-}
 document.addEventListener("DOMContentLoaded", async() => {
     await loadTimeSeries();
     // line chart
@@ -293,47 +291,30 @@ document.addEventListener("DOMContentLoaded", async() => {
     }
     ts_chart.on("plotly_hover", triggerHeatmap);
     ts_chart.on("plotly_relayout", triggerHeatmap);
-    // slider1.addEventListener("input", triggerHeatmap);
-    // slider2.addEventListener("input", triggerHeatmap);
     startInput.addEventListener("input", triggerHeatmap);
     endInput.addEventListener("input", triggerHeatmap);
 
     function changeTimeseriesRange() {
-        // // obtain time range
-        // const val1 = parseInt(slider1.value);
-        // const val2 = parseInt(slider2.value);
-        // const startIdx = Math.min(val1, val2);
-        // const endIdx = Math.max(val1, val2);
-        // const startDateTS = dates[startIdx];
-        // const endDateTS = dates[endIdx];
-        // const update = {
-        //     "xaxis.range": [startDateTS, endDateTS],
-        //     // "yaxis.autorange": true,
-        //     // "yaxis.rangemode": "normal", // This prevents extra padding logic
-        //     // "yaxis.autorangeoptions.clip": true,
-        //     // "yaxis.fixedrange": false,
-        //     // yaxis: {
-        //     //     range: [startDateTS, endDateTS],
-        //     //     autorange: true,
-        //     //     autorangeoptions: {
-        //     //         clip: true,
-        //     //     },
-        //     //     // fixedrange: false,x
-        //     // },
-        // };
-        // Plotly.relayout(ts_chart, update);
-        Plotly.relayout(ts_scale, {"xaxis.range": [startInput.value, endInput.value]});
+        const startDateLimit = new Date(ts_chart._fullLayout.xaxis.rangeslider.range[0]);
+        const endDateLimit = new Date(ts_chart._fullLayout.xaxis.rangeslider.range[1]);
+        if(typeof(startInput.value) == "string" && typeof(endInput.value) == "string") {
+            const startDate = new Date(startInput.value);
+            const endDate = new Date(endInput.value);
+            if(startDateLimit <= startDate && startDate <= endDate && endDate <= endDateLimit) {
+                Plotly.relayout(ts_chart, {"xaxis.range": [startInput.value, endInput.value]});
+            }
+        }
     }
-    // slider1.addEventListener("input", changeTimeseriesRange);
-    // slider2.addEventListener("input", changeTimeseriesRange);
     startInput.addEventListener("input", changeTimeseriesRange);
     endInput.addEventListener("input", changeTimeseriesRange);
 
-    function changeTimeseriesScale(eventData) {
+    function changeTimeseriesRangeScale(eventData) {
         if(!eventData["xaxis.range"] && !eventData?.srcElement?.name && (eventData?.srcElement?.name != "scaleChoice")) return;
         // obtain time range
         const startDate = ts_chart._fullLayout.xaxis.range[0].substring(0, 10);
         const endDate = ts_chart._fullLayout.xaxis.range[1].substring(0, 10);
+        startInput.value = startDate
+        endInput.value = endDate
         const startIdx = dates.indexOf(startDate);
         const endIdx = dates.indexOf(endDate);
         if(document.getElementById("scaleStartDate").checked) {
@@ -360,7 +341,7 @@ document.addEventListener("DOMContentLoaded", async() => {
             Plotly.restyle(ts_chart, {y: newTimeseiesData}, traceIndices);
         }
     }
-    ts_chart.on("plotly_relayout", changeTimeseriesScale);
-    document.getElementById("scaleDefault").addEventListener("change", changeTimeseriesScale);
-    document.getElementById("scaleStartDate").addEventListener("change", changeTimeseriesScale);
+    ts_chart.on("plotly_relayout", changeTimeseriesRangeScale);
+    document.getElementById("scaleDefault").addEventListener("change", changeTimeseriesRangeScale);
+    document.getElementById("scaleStartDate").addEventListener("change", changeTimeseriesRangeScale);
 });
