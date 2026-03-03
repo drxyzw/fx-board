@@ -8,7 +8,7 @@ let ccy_country_map;
 let heatmap_reporter;
 
 async function loadTimeSeries() {
-    const res= await fetch("./data/NEER_CHART_DAILY.json");
+    const res= await fetch("data/NEER_CHART_DAILY.json");
     timeseriesData = await res.json();
     // timeseriesData = {
     //     "Date": timeseriesData.Date,
@@ -87,7 +87,7 @@ function plotTimeSeries() {
 async function loadReporter(reporter) {
     if(reporterCache[reporter]) return reporterCache[reporter]
 
-    const res = await fetch(`./data/detail/${reporter}.json`);
+    const res = await fetch(`data/detail/${reporter}.json`);
     const data = await res.json();
     reporterCache[reporter] = data;
     return data;
@@ -188,7 +188,7 @@ function plotHeatmap(reporter, values) {
 
 async function plotMap(values) {
     if(!ccy_country_map) {
-        const res = await fetch(`./data/detail/CCY_COUNTRY.json`);
+        const res = await fetch(`data/detail/CCY_COUNTRY.json`);
         ccy_country_map = await res.json();
     }
     const reporters = Object.keys(values);
