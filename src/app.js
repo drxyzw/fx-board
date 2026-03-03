@@ -287,6 +287,7 @@ document.addEventListener("DOMContentLoaded", async() => {
     };
 
     triggerWorldMap();
+    ts_chart.on("plotly_restyle", triggerWorldMap);
 
     // heatmap
     async function triggerHeatmap(event) {
