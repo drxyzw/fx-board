@@ -1,0 +1,10 @@
+python-dotenv
+selenium
+requests
+pandas
+fredapi
+sdmx
+scipy
+openpyxl
+pyarrow
+fastparquet
