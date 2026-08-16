@@ -29,7 +29,7 @@ fxRateDataDf = None
 onlyPrecomputed = precomputedNeerObj.onlyPrecomputed()
 if not onlyPrecomputed:
     # Trade data
-    tradeData = ImfDotsTradeData()
+    tradeData = InfDotsTradeDataViaUKDataService()
     tradeDataDf = tradeData.getTradeData(ccies, loadFileIfExists=True)
     print("finished loading trade data")
 
